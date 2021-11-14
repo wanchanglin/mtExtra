@@ -11,7 +11,7 @@ vec_norm(x, method = "median", scale = TRUE)
 
 \item{method}{the normalisation method to be used.}
 
-\item{cale}{a logical to scale `x` or not}
+\item{scale}{a logical to scale `x` or not}
 }
 \value{
 returns a normalised vector
@@ -21,5 +21,5 @@ Normalise a numeric vector
 }
 \examples{
 x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
-vec_norm(x, method = "median", scale = T)
+vec_norm(x, method = "median", scale = TRUE)
 }

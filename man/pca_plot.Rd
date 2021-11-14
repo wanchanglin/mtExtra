@@ -15,6 +15,8 @@ the row.}
 \item{scale}{a logical flag to indicate whether or not scale \code{x}.}
 
 \item{ep.plot}{plot ellipse or not.}
+
+\item{...}{further parameters passed to `plot`}
 }
 \value{
 a base R graphics object.
@@ -25,5 +27,8 @@ Plot PCA of a matrix or data frame with base R function
 \examples{
 data(iris)
 pca_plot(iris[, 1:4], iris[, 5], ep.plot = TRUE)
+}
+\author{
+Wanchang Lin
 }
 \keyword{multivariate}

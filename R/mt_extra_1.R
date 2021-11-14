@@ -8,16 +8,21 @@
 #'
 #' @param x a matrix for plotting. Should have row names
 #' @param y a factor or character vector specifiing the group information of
-#' the row.
+#'   the row.
 #' @param scale a logical flag to indicate whether or not scale \code{x}.
 #' @param ep.plot plot ellipse or not.
+#' @param ... further parameters passed to `plot`
 #'
 #' @return a base R graphics object.
-#' @keywords multivariate
-#' @export
+#' @author Wanchang Lin
 #' @examples
 #' data(iris)
 #' pca_plot(iris[, 1:4], iris[, 5], ep.plot = TRUE)
+#' @keywords multivariate
+#' @export
+#' @importFrom ellipse ellipse
+#' @importFrom graphics lines text
+#' @importFrom stats prcomp quantile sd var
 pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 
   ## wl-09-11-2021, Tue: fix a bug
@@ -128,12 +133,12 @@ var_filter <- function(x, var.func = "IQR", var.cutoff = 0.25,
 #'
 #' @param x a vector
 #' @param method the normalisation method to be used.
-#' @param cale a logical to scale `x` or not
+#' @param scale a logical to scale `x` or not
 #' @return returns a normalised vector
 #' @export
 #' @examples
 #' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
-#' vec_norm(x, method = "median", scale = T)
+#' vec_norm(x, method = "median", scale = TRUE)
 vec_norm <- function(x, method = "median", scale = TRUE) {
   method <- match.arg(method, c("median", "mean"))
   method <- get(method)
