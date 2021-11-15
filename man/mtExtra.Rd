@@ -3,10 +3,11 @@
 \docType{package}
 \name{mtExtra}
 \alias{mtExtra}
-\title{mtExtra}
+\alias{mtExtra-package}
+\title{Extra functions for metabolomics data analysis}
 \description{
-`mtExtra` has more functions for metabolomics data analysis. It should use
-with R package \code{mt}.
+`mtExtra` has more functions for metabolomics data analysis.
+  It should use ' with R package \code{mt}.
 }
 \section{Main functions}{
 
@@ -22,4 +23,3 @@ It also uses `melt` in `reshape2` if `tidyr` is complicated in some
 circumstances.
 }
 
-\keyword{internal}

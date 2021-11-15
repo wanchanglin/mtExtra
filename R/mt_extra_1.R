@@ -8,7 +8,6 @@
 #' @param fs.ord data matrix for multiple feature order lists.
 #' @param top.k top feature number to be processed.
 #' @return a data matrix of feature counts.
-#' @import tidyr dplyr purrr
 #' @export 
 ## lwc-10-11-2021, Wed: get the count number of feature selectors in top-k
 ##  feature orders.
@@ -26,21 +25,33 @@ feat_count <- function(fs.ord, top.k = 30) {
     rowwise() %>%
     mutate(count = rowSums(across(where(is.numeric)))) %>%
     ## mutate(count = sum(c_across(where(is.numeric)))) %>%
-    ungroup() %>% arrange(desc(count))
+    ungroup() %>%
+    arrange(desc(count))
 
   return(fs_top)
 }
 
 ## ------------------------------------------------------------------------
+#' Get the count number of features
+#' 
+#' Calculate the features counts based on the frequency of multiple selectors.
+#' 
+#' @param fs.ord data matrix for multiple feature order lists.
+#' @param top.k top feature number to be processed.
+#' @return a data matrix of feature counts.
+#' @noRd 
 ## lwc-19-01-2016: get the count number of feature selectors in top-k
 ##  feature orders.
-## Use 'reshape' (not 'reshape2')
+## Use 'reshape' (not 'reshape2'). 'reshape2::dcast()' margins = "grand_col"
+##  has problem.
 feat_count_1 <- function(fs.ord, top.k = 30) {
   fs.ord <- fs.ord[1:top.k, ]
 
   ## Use melt and cast to get frequency table
-  tmp <- reshape::melt(fs.ord, id = NULL)
-  cons <- reshape::cast(tmp, value ~ variable,
+  tmp <- melt(fs.ord, id = NULL)
+  # tmp <- reshape::melt(fs.ord, id = NULL)
+  # cons <- reshape::cast(tmp, value ~ variable,
+  cons <- dcast(tmp, value ~ variable,
     fun.aggregate = length,
     margins = "grand_col"
   )
@@ -260,9 +271,6 @@ rsd <- function(x, na.rm = TRUE) {
 #' pca_plot(iris[, 1:4], iris[, 5], ep.plot = TRUE)
 #' @keywords multivariate
 #' @export
-#' @importFrom ellipse ellipse
-#' @importFrom graphics lines text
-#' @importFrom stats prcomp quantile sd var
 ## wl-04-11-2015, Wed: PCA plot with rownames of matrix.
 ## wl-09-11-2021, Tue: Slightly modified from mt::pca.plot.
 pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
@@ -354,63 +362,55 @@ vec_norm <- function(x, method = "median", scale = TRUE) {
 }
 
 ## ------------------------------------------------------------------------
-#' mtExtra
-#'
-#' `mtExtra` has more functions for metabolomics data analysis. It should use
-#' with R package \code{mt}.
-#'
-#' @section Main functions:
-#' The main mtExtra provides more functions for metabolomics data analysis.
-#' These functions are statistical analysis and plot methods with `ggplot2` and
-#' `lattice`. It uses `tidyverse` as well as `reshape2` and `plyr` packages.
-#'
-#' @section Package context:
-#' This package follows the principles of the "tidyverse" as mush as possible.
-#' It also uses `melt` in `reshape2` if `tidyr` is complicated in some
-#' circumstances.
-#'
-#' @docType package
-#' @name mtExtra
-#' @keywords internal
-NULL
-
-## ------------------------------------------------------------------------
+#' Wrapper function for plotting classification restults
+#' 
+#' This function plots accuracy, AUC and margin (aam) of classification 
+#' results from package \code{mt}.
+#' 
+#' @param aam a data matrix of classification results.
+#' @param fig_title a string of figure title
+#' @return an object of class `ggplot2`
+#' @export 
 ## lwc-06-05-2011: Wrapper function for plotting the aam results
 ##    (Accuracy, AUC and Margin).
 ## wl-09-11-2021, Tue: implement with ggplot2
-plot_aam <- function(aam, fig_title = "Accuracy, AUC and Margin", ...) {
-  z <- reshape2::melt(aam)
+plot_aam <- function(aam, fig_title = "Accuracy, AUC and Margin") {
+  z <- melt(aam)
   z <- z[complete.cases(z), ] ## in case NAs
   names(z) <- c("classifier", "assessment", "value", "data")
   z$classifier <- factor(z$classifier)
 
-  if (T) {
-    aam.p <-
-      ggplot(z, aes(y = value, x = data, color = classifier,
-                    group = classifier)) +
-      geom_line(aes(linetype = classifier))+
-      geom_point(aes(shape = classifier)) +
-      ggtitle(fig_title) +
-      facet_wrap(~ assessment) +
-      coord_flip()
-  } else {
-     aam.p <-
-       dotplot(factor(data, levels = rev(unique.default(data))) ~ value | assessment,
-         data = z, groups = classifier, as.table = T,
-         layout = c(length(unique(z$assessment)), 1),
-         par.settings = list(
-           superpose.line = list(lty = c(1:7)),
-           superpose.symbol = list(pch = rep(1:25))
-         ),
-         type = "o", ## comment this line to get original dot plot
-         auto.key = list(lines = TRUE, space = "bottom", columns = nlevels(z$classifier)),
-         xlab = "", main = fig_title, ...
-       )
-  }
+  aam.p <-
+    ggplot(z, aes(y = value, x = data, color = classifier,
+                  group = classifier)) +
+    geom_line(aes(linetype = classifier)) +
+    geom_point(aes(shape = classifier)) +
+    ggtitle(fig_title) +
+    facet_wrap(~ assessment) +
+    coord_flip()
+  # aam.p <-
+  #     dotplot(factor(data, levels = rev(unique.default(data))) ~ value | assessment,
+  #       data = z, groups = classifier, as.table = T,
+  #       layout = c(length(unique(z$assessment)), 1),
+  #       par.settings = list(
+  #         superpose.line = list(lty = c(1:7)),
+  #         superpose.symbol = list(pch = rep(1:25))
+  #       ),
+  #       type = "o", ## comment this line to get original dot plot
+  #       auto.key = list(lines = TRUE, space = "bottom", columns = nlevels(z$classifier)),
+  #       xlab = "", main = fig_title, ...
+  #     )
   return(aam.p)
 }
 
 ## ------------------------------------------------------------------------
+#' Plot adjusted p-values
+#' 
+#' Plot the adjusted p-values using `ggplot2`
+#' 
+#' @param pval_list a data matix or a list of data matrix of p-value correction
+#' @return an object of class `ggplot2`
+#' @export  
 ## wl-09-11-2021, Tue: plot adjusted p-values
 ## wl-11-11-2021, Thu: deal with single matrix/data.frame
 ##  pval.ad - a list of matrix of p-values and their correction
@@ -469,18 +469,32 @@ plot_pval <- function(pval_list) {
 }
 
 ## ------------------------------------------------------------------------
+#' Correlation hierarchical cluster analysis
+#' 
+#' Perform hierarchical cluster analysis based on correlation.
+#' 
+#' @param mat a data matrix
+#' @param cutoff a threshold for correlation anaalysis.
+#' @param use a string giving a method for computing covariances. For details, 
+#'   see `cor`.
+#' @param method method for correlation `cor`.
+#' @param fig_title title for plotting
+#' @param size text font size of `ggplot2`.
+#' @param rotate a logical indicating wheter to rotate teh plot.
+#' @return retuns a list of a `ggplot2` object for clustering and a list of 
+#'   cluster centres.
+#' @importFrom ggdendro ggdendrogram dendro_data
+#' @export 
 ## wl-05-10-2021, Tue: correlation hierarchical cluster analysis
 ## Note:
 ##  1.) use 'ggdendro' but more eddforts are needed.
 ##  2.) modify from 'cor.hcl' in R package 'mt'
-##
 cor_hcl <- function(mat, cutoff = 0.75,
                     use = "pairwise.complete.obs",
                     method = "pearson",
                     fig_title = "Cluster Dendrogram",
                     size = 3,
-                    rotate = FALSE,
-                    ...) {
+                    rotate = FALSE) {
   # require(ggdendro)
   co <- cor(mat, use = use, method = method)
   hc <- hclust(as.dist(1 - co))
@@ -525,6 +539,14 @@ cor_hcl <- function(mat, cutoff = 0.75,
 }
 
 ## ------------------------------------------------------------------------
+#' Update data set by a subset of features
+#' 
+#' Update data set after feature selection. 
+#' 
+#' @param dat.all a list of metobolomics data including indensity data, peak 
+#'   data and meta data
+#' @param ord a subset of selected freature orders
+#' @export 
 ## lwc-03-03-2010: Update data set by a subset of features or variables.
 upd_data <- function(dat.all, ord) {
   dn <- names(ord)
@@ -616,7 +638,7 @@ cor_net <- function(mat,
 ##  co_mat - correlation coffeficient matrix
 ##  thres - correlation coeeficient threshold for network analysis
 bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
-  g_dat <- reshape2::melt(co_mat)
+  g_dat <- melt(co_mat)
   if (!is.null(dn)) {
     names(g_dat) <- c(dn, "corr")
   } else {
@@ -720,6 +742,15 @@ dat_cor <- function(dat_1, dat_2, partial = FALSE,
 }
 
 ## ------------------------------------------------------------------------
+#' Partial correlation analysis
+#' 
+#' Perform partial correlation analysis of two data matrix
+#' 
+#' @param x,y two data matrix for correlation anlysys.
+#' @param method correlation method.
+#' @return returns a correlation matrix.
+#' @importFrom ppcor pcor
+#' @export 
 ## wl-04-06-2021, Fri: partial correlation between two data frame
 pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
   if (!(is.matrix(x) || is.data.frame(x))) {
@@ -744,11 +775,31 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 }
 
 ## -----------------------------------------------------------------------
+#' Heatmap with dendrograms with ggplot2
+#' 
+#' Plot heatmap of a data matrix using `ggplot2`. This funcion is modofied 
+#' from https://bit.ly/2UUnY2L.
+#' 
+#' @param mat a data mstrix to be plotted.
+#' @param row.dend plot row dendrogram or not.
+#' @param col.dend plot column dendrogram ot not.
+#' @param colors a vector of colours for heatmap.
+#' @param font.size label font size.
+#' @param x.rot plot rotate degree.
+#' @param legend.title lengend title.
+#' @param dist.metode distance method.
+#' @param clust.method cluster method.
+#' @param dend.line.size dendrogram line size.
+#' @return retuns an object of class `ggplot2`.
+#' @importFrom cowplot axis_canvas insert_yaxis_grob ggdraw
+#' @export 
+#' @examples 
+#' library(ggplot2)
+#' gg_heat_dend(mtcars)
 ## wl-24-11-2020, Tue: Heatmap with dendrograms with ggplot2
 ## Modified from https://bit.ly/2UUnY2L <br/>
 ## wl-15-06-2021, Tue: add 'row_den_left'
 ## wl-15-10-2021, Fri: Review
-## gg_heat_dend(mtcars)
 gg_heat_dend <- function(mat,
                          row.dend = T,
                          col.dend = T,
@@ -1565,46 +1616,32 @@ chunk_3 <- function(x, n, force.number.of.groups = TRUE, len = length(x),
   return(g[g.names.ordered])
 }
 
-##  1) cor_hcl
-##  2) plot_aam
-##  3) upd_data
-##  4) rsd
-##  5) cor_net
-##  6) bi_cor_net
-##  7) dat_cor
-##  8) pcor_dat
-##  9) dat_filter
-## 10) var_filter
-## 11) sd_zero_filter
-## 12) sd_filter
-## 13) mv_filter
-## 14) gg_heat_dend
-## 15) heat_dend
-## 16) vec_ci
-## 17) net_graph
-## 18) graph_stats
-## 19) vertex_stats
-## 20) cor_tab
-## 21) sym2long
-## 22) std_scale
-## 23) mm_scale
-## 24) elli
-## 25) str_trim
-## 26) non_digit
-## 27) non_zero
-## 28) is_zero
-## 29) df_na_idx
-## 30) rbind_df
-## 31) mat2df
-## 32) df_t
-## 33) dim_mat
-## 34) arrange_row
-## 35) vec2dat
-## 36) ps_tiff
-## 37) dendro_data_k
-## 38) plot_ggdendro
-## 39) chunk
-## 40) chunk_1
-## 41) chunk_2
-## 42) chunk_3
-## 43) feat_count
+## ------------------------------------------------------------------------
+#' @title Extra functions for metabolomics data analysis
+#' @name mtExtra
+#'
+#' @description `mtExtra` has more functions for metabolomics data analysis.
+#'   It should use ' with R package \code{mt}.
+#'
+#' @section Main functions:
+#' The main mtExtra provides more functions for metabolomics data analysis.
+#' These functions are statistical analysis and plot methods with `ggplot2` and
+#' `lattice`. It uses `tidyverse` as well as `reshape2` and `plyr` packages.
+#'
+#' @section Package context:
+#' This package follows the principles of the "tidyverse" as mush as possible.
+#' It also uses `melt` in `reshape2` if `tidyr` is complicated in some
+#' circumstances.
+#'
+#' @importFrom ellipse ellipse
+#' @importFrom graphics lines text
+#' @importFrom stats prcomp quantile sd var
+#' @import tidyr dplyr purrr
+#' @importFrom reshape2 melt
+#' @importFrom grDevices colorRampPalette dev.off tiff
+#' @importFrom stats as.dendrogram as.dist as.hclust complete.cases cor
+#'   cutree dist hclust line order.dendrogram p.adjust pf pt qt
+#' @importFrom utils data head
+#' @docType package
+#' @aliases mtExtra mtExtra-package
+NULL
