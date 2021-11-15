@@ -16,7 +16,7 @@ the row.}
 
 \item{ep.plot}{plot ellipse or not.}
 
-\item{...}{further parameters passed to `plot`}
+\item{...}{further parameters passed to \code{plot}}
 }
 \value{
 a base R graphics object.
@@ -25,8 +25,8 @@ a base R graphics object.
 Plot PCA of a matrix or data frame with base R function.
 }
 \details{
-The `rownames` of `x` will be shown in the plot. `y` is used to indicate
-  the group of row of `x`.
+The \code{rownames} of \code{x} will be shown in the plot. \code{y} is used to indicate
+the group of row of \code{x}.
 }
 \examples{
 data(iris)

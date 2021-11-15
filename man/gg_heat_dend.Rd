@@ -40,10 +40,10 @@ gg_heat_dend(
 \item{dist.metode}{distance method.}
 }
 \value{
-retuns an object of class `ggplot2`.
+retuns an object of class \code{ggplot2}.
 }
 \description{
-Plot heatmap of a data matrix using `ggplot2`. This funcion is modofied 
+Plot heatmap of a data matrix using \code{ggplot2}. This funcion is modofied
 from https://bit.ly/2UUnY2L.
 }
 \examples{

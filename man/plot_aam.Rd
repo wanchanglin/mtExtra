@@ -12,9 +12,9 @@ plot_aam(aam, fig_title = "Accuracy, AUC and Margin")
 \item{fig_title}{a string of figure title}
 }
 \value{
-an object of class `ggplot2`
+an object of class \code{ggplot2}
 }
 \description{
-This function plots accuracy, AUC and margin (aam) of classification 
+This function plots accuracy, AUC and margin (aam) of classification
 results from package \code{mt}.
 }

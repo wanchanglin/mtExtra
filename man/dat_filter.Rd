@@ -12,7 +12,7 @@ information.}
 
 \item{method}{the method for filtering.}
 
-\item{...}{further parameters to be passed to `method`.}
+\item{...}{further parameters to be passed to \code{method}.}
 }
 \value{
 a filtered list of metabolomics data.

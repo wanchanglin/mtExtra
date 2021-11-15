@@ -19,20 +19,20 @@ cor_hcl(
 
 \item{cutoff}{a threshold for correlation anaalysis.}
 
-\item{use}{a string giving a method for computing covariances. For details, 
-see `cor`.}
+\item{use}{a string giving a method for computing covariances. For details,
+see \code{cor}.}
 
-\item{method}{method for correlation `cor`.}
+\item{method}{method for correlation \code{cor}.}
 
 \item{fig_title}{title for plotting}
 
-\item{size}{text font size of `ggplot2`.}
+\item{size}{text font size of \code{ggplot2}.}
 
 \item{rotate}{a logical indicating wheter to rotate teh plot.}
 }
 \value{
-retuns a list of a `ggplot2` object for clustering and a list of 
-  cluster centres.
+retuns a list of a \code{ggplot2} object for clustering and a list of
+cluster centres.
 }
 \description{
 Perform hierarchical cluster analysis based on correlation.

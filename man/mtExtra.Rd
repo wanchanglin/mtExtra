@@ -6,20 +6,20 @@
 \alias{mtExtra-package}
 \title{Extra functions for metabolomics data analysis}
 \description{
-`mtExtra` has more functions for metabolomics data analysis.
-  It should use ' with R package \code{mt}.
+\code{mtExtra} has more functions for metabolomics data analysis.
+It should use ' with R package \code{mt}.
 }
 \section{Main functions}{
 
 The main mtExtra provides more functions for metabolomics data analysis.
-These functions are statistical analysis and plot methods with `ggplot2` and
-`lattice`. It uses `tidyverse` as well as `reshape2` and `plyr` packages.
+These functions are statistical analysis and plot methods with \code{ggplot2} and
+\code{lattice}. It uses \code{tidyverse} as well as \code{reshape2} and \code{plyr} packages.
 }
 
 \section{Package context}{
 
 This package follows the principles of the "tidyverse" as mush as possible.
-It also uses `melt` in `reshape2` if `tidyr` is complicated in some
+It also uses \code{melt} in \code{reshape2} if \code{tidyr} is complicated in some
 circumstances.
 }
 

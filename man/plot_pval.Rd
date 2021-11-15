@@ -10,8 +10,8 @@ plot_pval(pval_list)
 \item{pval_list}{a data matix or a list of data matrix of p-value correction}
 }
 \value{
-an object of class `ggplot2`
+an object of class \code{ggplot2}
 }
 \description{
-Plot the adjusted p-values using `ggplot2`
+Plot the adjusted p-values using \code{ggplot2}
 }

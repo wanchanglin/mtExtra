@@ -11,7 +11,7 @@ vec_norm(x, method = "median", scale = TRUE)
 
 \item{method}{the normalisation method to be used.}
 
-\item{scale}{a logical to scale `x` or not.}
+\item{scale}{a logical to scale \code{x} or not.}
 }
 \value{
 returns a normalised vector.

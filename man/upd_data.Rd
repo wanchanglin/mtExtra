@@ -7,7 +7,7 @@
 upd_data(dat.all, ord)
 }
 \arguments{
-\item{dat.all}{a list of metobolomics data including indensity data, peak 
+\item{dat.all}{a list of metobolomics data including indensity data, peak
 data and meta data}
 
 \item{ord}{a subset of selected freature orders}

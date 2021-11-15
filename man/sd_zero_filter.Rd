@@ -14,8 +14,8 @@ before the computation proceeds.}
 }
 \value{
 a list of with contents: \itemize{
- \item x the filtered data matrix
- \item idx a vector of filtering index.
+\item x the filtered data matrix
+\item idx a vector of filtering index.
 }
 }
 \description{

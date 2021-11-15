@@ -13,6 +13,7 @@ BugReports: https://github.com/wanchanglin/mtExtra/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
+Roxygen: list(markdown = TRUE)
 Imports: 
     reshape2, ggplot2, lattice, dplyr, tidyr, purrr, ellipse, ggdendro,
     igraph, ppcor, cowplot

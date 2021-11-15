@@ -13,18 +13,18 @@ iqr_filter(x, var.func = "IQR", var.cutoff = 0.25, filterByQuantile = TRUE)
 
 \item{var.cutoff}{a numeric value for the threshold.}
 
-\item{filterByQuantile}{a logical indicating whether `var.cutoff` is to be
-a quantile of all `var.func` values or as an absolute value.}
+\item{filterByQuantile}{a logical indicating whether \code{var.cutoff} is to be
+a quantile of all \code{var.func} values or as an absolute value.}
 }
 \value{
 a list of with contents: \itemize{
- \item x the filtered data matrix
- \item idx a vector of filtering index.
+\item x the filtered data matrix
+\item idx a vector of filtering index.
 }
 }
 \description{
 Perform variable filtering(column-wise) based on IQR. This function is
-slightly modified from `varFilter` in `genefilter`.
+slightly modified from \code{varFilter} in \code{genefilter}.
 }
 \examples{
 x <- matrix(rnorm(20*3), ncol = 3)
