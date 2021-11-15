@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra_1.R
 \name{vec_norm}
 \alias{vec_norm}
-\title{vector normalisation}
+\title{Vector normalisation}
 \usage{
 vec_norm(x, method = "median", scale = TRUE)
 }
@@ -11,13 +11,13 @@ vec_norm(x, method = "median", scale = TRUE)
 
 \item{method}{the normalisation method to be used.}
 
-\item{scale}{a logical to scale `x` or not}
+\item{scale}{a logical to scale `x` or not.}
 }
 \value{
-returns a normalised vector
+returns a normalised vector.
 }
 \description{
-Normalise a numeric vector
+Perform normalisation on a numeric vector.
 }
 \examples{
 x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)

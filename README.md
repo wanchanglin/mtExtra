@@ -2,19 +2,16 @@
 
 ## Overview ##
 
-Functions for metabolomics data analysis
+Extra functions for metabolomics data analysis. The most of functions are
+associated with R package
+[mt](https://cran.r-project.org/web/packages/mt/index.html).
 
-## Installation from CRAN
+## Installation from GitHub ##
 
-```r
-install.packages("mtExtra")
-```
-
-## Installation from github ##
+This package is only in GitHub. To install, use:
 
 ```r
-library(devtools)
-install_github("wanchanglin/mtExtra")
+devtools::install_github("wanchanglin/mtExtra")
 ```
 
 ## Usage ##

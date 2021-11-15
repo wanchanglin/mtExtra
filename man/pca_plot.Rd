@@ -9,7 +9,7 @@ pca_plot(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...)
 \arguments{
 \item{x}{a matrix for plotting. Should have row names}
 
-\item{y}{a factor or character vector specifiing the group information of
+\item{y}{a factor or character vector specifying the group information of
 the row.}
 
 \item{scale}{a logical flag to indicate whether or not scale \code{x}.}
@@ -22,7 +22,11 @@ the row.}
 a base R graphics object.
 }
 \description{
-Plot PCA of a matrix or data frame with base R function
+Plot PCA of a matrix or data frame with base R function.
+}
+\details{
+The `rownames` of `x` will be shown in the plot. `y` is used to indicate
+  the group of row of `x`.
 }
 \examples{
 data(iris)
