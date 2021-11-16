@@ -40,17 +40,21 @@ feat_count <- function(fs.ord, top.k = 30) {
 #' @param top.k top feature number to be processed.
 #' @return a data matrix of feature counts.
 #' @noRd 
-## lwc-19-01-2016: get the count number of feature selectors in top-k
+## wl-19-01-2016, Sat: get the count number of feature selectors in top-k
 ##  feature orders.
-## Use 'reshape' (not 'reshape2'). 'reshape2::dcast()' margins = "grand_col"
-##  has problem.
+## wl-16-11-2021, Tue: 'reshape' works fine but 'reshape2::dcast()'
+##  margins = "grand_col"  has problem.
 feat_count_1 <- function(fs.ord, top.k = 30) {
   fs.ord <- fs.ord[1:top.k, ]
 
   ## Use melt and cast to get frequency table
-  tmp <- melt(fs.ord, id = NULL)
   # tmp <- reshape::melt(fs.ord, id = NULL)
   # cons <- reshape::cast(tmp, value ~ variable,
+  #   fun.aggregate = length,
+  #   margins = "grand_col"
+  # )
+  ## FIX-ME: 'grand_col' does not work here. 
+  tmp <- melt(fs.ord, id = NULL)
   cons <- dcast(tmp, value ~ variable,
     fun.aggregate = length,
     margins = "grand_col"
@@ -149,7 +153,6 @@ iqr_filter <- function(x, var.func = "IQR", var.cutoff = 0.25,
 ## wl-04-05-2021, Tue: filtering variables with sd values close to zero
 ## wl-03-06-2021, Thu: return filtering data as well
 sd_zero_filter <- function(x, na.rm = FALSE) {
-  ## take off the columns with the same values.
   idx <- which(apply(x, 2, sd, na.rm = na.rm) > .Machine$double.eps)
   x <- x[, idx, drop = F]
   return(list(dat = x, idx = idx))
@@ -169,14 +172,12 @@ sd_zero_filter <- function(x, na.rm = FALSE) {
 #'  \item x the filtered data matrix
 #'  \item idx a vector of filtering index.
 #' }
+#' @details  
+#' - Calculate the standard deviation for every feature across all samples.
+#' - Select, say, 5-50% of the features with the highest SD. That leaves the 
+#'   features that vary a lot between groups.
 #' @export
 ## wl-26-02-2013: Filtering by SD
-## - Calculate the standard deviation for every feature across all samples.
-##   - That gives one SD value per feature
-## - Select, say, 5-50% of the features with the highest SD
-## - That leaves the features that vary a lot
-##   - Between groups
-##   - Randomply fluctuating expression
 ## wl-17-06-2021, Thu: need to test and debug
 sd_filter <- function(x, sig.cutoff = 0.95, na.rm = FALSE) {
   sds <- apply(x, 2, sd, na.rm = na.rm)
@@ -250,118 +251,6 @@ rsd <- function(x, na.rm = TRUE) {
 }
 
 ## ------------------------------------------------------------------------
-#' PCA plot
-#'
-#' Plot PCA of a matrix or data frame with base R function.
-#'
-#' @param x a matrix for plotting. Should have row names
-#' @param y a factor or character vector specifying the group information of
-#'   the row.
-#' @param scale a logical flag to indicate whether or not scale \code{x}.
-#' @param ep.plot plot ellipse or not.
-#' @param ... further parameters passed to `plot`
-#'
-#' @return a base R graphics object.
-#' @details
-#'   The `rownames` of `x` will be shown in the plot. `y` is used to indicate
-#'   the group of row of `x`.
-#' @author Wanchang Lin
-#' @examples
-#' data(iris)
-#' pca_plot(iris[, 1:4], iris[, 5], ep.plot = TRUE)
-#' @keywords multivariate
-#' @export
-## wl-04-11-2015, Wed: PCA plot with rownames of matrix.
-## wl-09-11-2021, Tue: Slightly modified from mt::pca.plot.
-pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
-
-  ## wl-09-11-2021, Tue: fix a bug
-  if (is.null(rownames(x))) {
-    rownames(x) <- 1:nrow(x)
-  }
-
-  ## wll-12-12-2008: Plot ellipse
-  elli.plot <- function(x, y, ...) {
-    Var <- var(cbind(x, y))
-    Mean <- cbind(mean(x), mean(y))
-    Elli <- ellipse(Var, centre = Mean, level = 0.975)
-    lines(Elli[, 1], Elli[, 2], ...)
-  }
-
-  ## wll-29-03-2008: Compute the PCA scores and proportion of variance
-  pca.comp <- function(x, scale = FALSE, pcs = 1:2, ...) {
-    pca <- prcomp(x, scale. = scale, ...)
-    vars <- pca$sdev^2       # i.e. eigenvalues/variance
-    vars <- vars / sum(vars) # Proportion of Variance
-    names(vars) <- colnames(pca$rotation)
-    vars <- round(vars * 100, 2)
-    ## dfn  <- paste(names(vars)," (",vars[names(vars)],"%)",sep="")
-    dfn <- paste(names(vars), ": ", vars[names(vars)], "%", sep = "")
-    x <- data.frame(pca$x)
-    x <- x[, pcs]
-    vars <- vars[pcs]
-    dfn <- dfn[pcs]
-    ## names(x) <- dfn
-
-    return(list(scores = x, vars = vars, varsn = dfn))
-  }
-
-  ## x <- as.matrix(x)
-  pca <- pca.comp(x, scale = scale, pcs = 1:2, ...)
-
-  val <- pca$scores
-  val <- val[c("PC2", "PC1")] # Swap position
-
-  plot(val,
-    type = "n", cex = 1.0, cex.lab = 1.0, cex.axis = 1.0, cex.main = 1.0,
-    ylab = paste("PC1", " (", pca$vars[1], "%)", sep = ""),
-    xlab = paste("PC2", " (", pca$vars[2], "%)", sep = ""),
-    ...
-  )
-
-  if (is.null(y)) {
-    text(val[, 1], val[, 2], rownames( x), cex = 0.7, ...)
-  } else {
-    y <- factor(y)
-    text(val[, 1], val[, 2], rownames(x), cex = 0.7, col = unclass(y), ...)
-
-    if (ep.plot) {
-      tmp <- as.factor(as.numeric(unclass(y)))
-      for (i in levels(tmp)) {
-        idx <- tmp == i
-        elli.plot(val[idx, 1], val[idx, 2], col = i)
-      }
-    }
-  }
-  invisible(NULL)
-}
-
-## ------------------------------------------------------------------------
-#' Vector normalisation
-#'
-#' Perform normalisation on a numeric vector.
-#'
-#' @param x a vector
-#' @param method the normalisation method to be used.
-#' @param scale a logical to scale `x` or not.
-#' @return returns a normalised vector.
-#' @export
-#' @examples
-#' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
-#' vec_norm(x, method = "median", scale = TRUE)
-## wl-22-09-2020, Tue: vector normalisation
-vec_norm <- function(x, method = "median", scale = TRUE) {
-  method <- match.arg(method, c("median", "mean"))
-  method <- get(method)
-  center <- method(x, na.rm = T)
-  x <- x - center
-  if (scale) {
-    x <- x / sd(x, na.rm = T)
-  }
-  return(x)
-}
-
-## ------------------------------------------------------------------------
 #' Wrapper function for plotting classification restults
 #' 
 #' This function plots accuracy, AUC and margin (aam) of classification 
@@ -413,7 +302,6 @@ plot_aam <- function(aam, fig_title = "Accuracy, AUC and Margin") {
 #' @export  
 ## wl-09-11-2021, Tue: plot adjusted p-values
 ## wl-11-11-2021, Thu: deal with single matrix/data.frame
-##  pval.ad - a list of matrix of p-values and their correction
 plot_pval <- function(pval_list) {
 
   if (!is.list(pval_list)) pval_list <- list(pval_list)
@@ -562,12 +450,21 @@ upd_data <- function(dat.all, ord) {
 }
 
 ## -----------------------------------------------------------------------
+#' Correlation network analysis
+#' 
+#' Perform network analysis for correlation coefficient.
+#' 
+#' @param mat a data matrix for correlation analysis
+#' @param use,method parameters of `cor`.
+#' @param thres correlation coeeficient threshold for network analysis. Only 
+#'   keep those with coeeficient larger than `thres`.
+#' @param fig_title a chracter string for gifure title.
+#' @return a list of `ggplot2` plots. 
+#' @export  
 ## wl-07-10-2021, Thu: Correlation network analysis
 ## wl-08-10-2021, Fri: Call function 'net_graph'
 ##  Note: This function is different from 'corr_net' which is for
 ##        Bipartite-mode correlation network.
-##  mat - data matrix for correlation analysis
-##  thres - correlation coeeficient threshold for network analysis
 cor_net <- function(mat,
                     use = "pairwise.complete.obs",
                     method = "pearson",
@@ -632,11 +529,18 @@ cor_net <- function(mat,
 }
 
 ## -----------------------------------------------------------------------
+#' Bipartite/two-mode correlation network
+#' 
+#' Perform bipartite/two-mode correlation network analysis.
+#' 
+#' @param co_mat a correlation coffeficient matrix.
+#' @param thres correlation coeeficient threshold for network analysis.
+#' @param dn a character string for correlation name.
+#' @return a list of `ggplot2` plots.
+#' @export 
 ## wl-07-05-2021, Fri: Bipartite/two-mode correlation network
 ## wl-19-06-2021, Thu: change family font from 'Arial' to 'sans'. So no
 ##  'extrafont' is needed for PDF output.
-##  co_mat - correlation coffeficient matrix
-##  thres - correlation coeeficient threshold for network analysis
 bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
   g_dat <- melt(co_mat)
   if (!is.null(dn)) {
@@ -706,6 +610,20 @@ bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
 }
 
 ## ------------------------------------------------------------------------
+#' Correlation between two data sets
+#' 
+#' Performs correlation between two data sets
+#' 
+#' @param dat_1,dat_2 two data matrix for correlation analysis. Note that they
+#'   must have the same row numbers.
+#' @param partial a logical value indicating whether to perform partial 
+#'   correlation analysis.
+#' @param method correlation method.
+#' @param ... further parameters to correlation method.
+#' @return a mstrix of correlation.
+#' @export 
+#' @details This function is very specific. Will change for more general 
+#'   purpose.
 ## wl-04-05-2021, Tue: Correlation between two data sets. Note
 ##   that samples must be the same. This function is not general.
 ## wl-17-05-2021, Mon: more general
@@ -783,11 +701,13 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #' @param mat a data mstrix to be plotted.
 #' @param row.dend plot row dendrogram or not.
 #' @param col.dend plot column dendrogram ot not.
+#' @param row.dend.right a ligical value to indivate the position of row 
+#'   dendrogram.
 #' @param colors a vector of colours for heatmap.
 #' @param font.size label font size.
 #' @param x.rot plot rotate degree.
 #' @param legend.title lengend title.
-#' @param dist.metode distance method.
+#' @param dist.method distance method.
 #' @param clust.method cluster method.
 #' @param dend.line.size dendrogram line size.
 #' @return retuns an object of class `ggplot2`.
@@ -797,7 +717,6 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #' library(ggplot2)
 #' gg_heat_dend(mtcars)
 ## wl-24-11-2020, Tue: Heatmap with dendrograms with ggplot2
-## Modified from https://bit.ly/2UUnY2L <br/>
 ## wl-15-06-2021, Tue: add 'row_den_left'
 ## wl-15-10-2021, Fri: Review
 gg_heat_dend <- function(mat,
@@ -896,10 +815,23 @@ gg_heat_dend <- function(mat,
 }
 
 ## ------------------------------------------------------------------------
+#' Heatmap with dendrogram on both sides
+#' 
+#' Plot heatmap with dendrogram on both sides using lattice
+#' 
+#' @param mat a data matrix for plotting.
+#' @param x.rot the rotate degree.
+#' @param col colours for heatmap.
+#' @param cex font size.
+#' @param xlab,ylab,main character strings for `xlab`, `ylab` and figure title.
+#' @param ... further parameters for `latticw`.
+#' @return an object of class `lattice`.
+#' @export 
+#' @examples 
+#' heat_dend(mtcars)
 ## wl-04-09-2015, Fri: Heatmap with dendrogram on both sides using lattice
 ## wl-15-06-2021, Tue: Makes heatmap consistent with data matrix and remove
 ## non-lattice parts
-## heat_dend(mtcars)
 heat_dend <- function(mat, x.rot = 60,
                       col = c("red", "white", "blue"),
                       cex = 0.5, xlab = "", ylab = "", main = "", ...) {
@@ -957,6 +889,17 @@ heat_dend <- function(mat, x.rot = 60,
 }
 
 ## -----------------------------------------------------------------------
+#' Vector summary
+#' 
+#' Calculate the statistical summary of a vector, including confidential
+#' interval.
+#' 
+#' @param x a numveric vector.
+#' @param na.rm remove NA or not.
+#' @param conf.interval a numeric value for confidential interval.
+#' @return retuns a vector of summary.
+#' @export 
+#'  
 ## wl-18-05-2021, Tue: stats of a vector.
 ##  Used for error bar plotting. Modify from https://bit.ly/3onsqot
 vec_ci <- function(x, na.rm = FALSE, conf.interval = .95) {
@@ -979,7 +922,41 @@ vec_ci <- function(x, na.rm = FALSE, conf.interval = .95) {
   c(n = n, mean = mean, sd = sd, se = se, ci = ci)
 }
 
+## ------------------------------------------------------------------------
+#' Vector normalisation
+#'
+#' Perform normalisation on a numeric vector.
+#'
+#' @param x a vector
+#' @param method the normalisation method to be used.
+#' @param scale a logical to scale `x` or not.
+#' @return returns a normalised vector.
+#' @export
+#' @examples
+#' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
+#' vec_norm(x, method = "median", scale = TRUE)
+## wl-22-09-2020, Tue: vector normalisation
+vec_norm <- function(x, method = "median", scale = TRUE) {
+  method <- match.arg(method, c("median", "mean"))
+  method <- get(method)
+  center <- method(x, na.rm = T)
+  x <- x - center
+  if (scale) {
+    x <- x / sd(x, na.rm = T)
+  }
+  return(x)
+}
+
 ## --------------------------------------------------------------------------
+#' Create an igraph object
+#' 
+#' Create an `igraph` object
+#' 
+#' @param edge_df graph eddge matrix.
+#' @param node_df graph vertex matrix.
+#' @return an `igraph` object with some vertex statistics and community
+#'  detection center.
+#' @export 
 ## wl-05-11-2020, Thu: create an igraph object
 net_graph <- function(edge_df, node_df = NULL) {
 
@@ -1019,6 +996,13 @@ net_graph <- function(edge_df, node_df = NULL) {
 }
 
 ## ------------------------------------------------------------------------
+#' Graph level metrics
+#' 
+#' Return graph level metrics.
+#' 
+#' @param g an `igraph` object.
+#' @return a vector of graph level metrics.
+#' @export 
 ## wl-22-03-2017: Graph level metrics
 graph_stats <- function(g) {
   ## num.nod <- gorder(g)                              ## nodes
@@ -1091,9 +1075,17 @@ graph_stats <- function(g) {
 }
 
 ## ------------------------------------------------------------------------
+#' Node descriptive metrics
+#' 
+#' Return node descriptive metrics.
+#' 
+#' @param g an `igraph` object.
+#' @export 
 ## wl-08-02-2017: Node descriptive
 ## wl-09-02-2017: add more descriptive
 ## wl-01-03-2017: add the membership of community detection for grouping.
+## wl-22-03-2017: move graph-level part into 'graph.stats' and change as
+## 'vertex.stats'.
 vertex_stats <- function(g) {
 
   ## wl-09-02-2017: radiality. Taken from package `CePa`
@@ -1175,22 +1167,27 @@ vertex_stats <- function(g) {
 }
 
 ## ------------------------------------------------------------------------
+#' Get correlation coefficient and p-values
+#' 
+#' Return correlation coefficient and p-values.
+#' 
+#' @param x a data frame or matrix for correlation analysis column-wise.
+#' @param cor.method method for correlation
+#' @param adj.method p-value correction method
+#' @param ... other parameter for correlation.
+#' @return a list of with contents: \itemize{
+#'  \item r correlation coefficient
+#'  \item p statistics matrix, in which the lower triangular is p-values 
+#'    and the upper triangular is adjusted p-values
+#' }
+#' @details 
+#'   This file is modified from 'cor.table' of package 'picante'
+#'   and 'corr.test' of package 'psych'.
+#'   The original implementation is from Bill Venables, the author of R great
+#'   book MASS. For details, see
+#'   https://stat.ethz.ch/pipermail/r-help/2001-November/016201.html
+#' @export  
 ## wl-23-06-2015: Get correlation coefficient and p-values
-## Note:
-##   This file is modified from 'cor.table' of package 'picante'
-## and 'corr.test' of package 'psych'.
-##   The original implementation is from Bill Venables, the author of R great
-## book MASS. For details, see
-## https://stat.ethz.ch/pipermail/r-help/2001-November/016201.html
-## Arguments:
-##  x - a data frame or matrix for correlation analysis column-wise
-##  cor.method - method for correlation
-##  adj.method - p-value correction method
-##  ... - other parameter for correlation.
-## Values:
-##  r - correlation coefficient
-##  p - statistics matrix, in which the lower triangular is p-values and the
-##      upper triangular is adjusted p-values
 cor_tab <- function(x,
                     cor.method = c("pearson", "kendall", "spearman"),
                     adj.method = c("holm", "hochberg", "hommel",
@@ -1221,12 +1218,15 @@ cor_tab <- function(x,
 }
 
 ## -----------------------------------------------------------------------
+#' Convert a symmetric table(short format) to long format
+#' 
+#' Convert a symmetric table(short format) to long format
+#' 
+#' @param x a symmetric matrix-like data set.
+#' @param tri triangular being used.
+#' @return returns a data frame of pair-wise comparison.
+#' @export 
 ## wl-24-06-2015: Convert a symmetric table(short format) to long format
-## Arguments:
-##   x     - A symmetric matrix-like data set
-##   tri   - Triangular being used
-## Returns:
-##   A data frame of pair-wise comparison
 sym2long <- function(x, tri = c("upper", "lower")) {
   tri <- match.arg(tri)
 
@@ -1261,6 +1261,14 @@ sym2long <- function(x, tri = c("upper", "lower")) {
 }
 
 ## ------------------------------------------------------------------------
+#' Scale vector with standarization
+#' 
+#' Perform standarization of an vector.
+#' 
+#' @param x an vector.
+#' @param na.rm a logical for whether removing NAs.
+#' @return returns scaled vector
+#' @export 
 ## wl-09-10-2021, Sat: scale vector with standarization
 std_scale <- function(x, na.rm = TRUE) {
   res <- (x - mean(x, na.rm = na.rm)) / sd(x, na.rm = na.rm)
@@ -1268,24 +1276,32 @@ std_scale <- function(x, na.rm = TRUE) {
 }
 
 ## ------------------------------------------------------------------------
+#' Scale vector between min and max
+#' 
+#' Scale vector between mininum and maxinum values.
+#' 
+#' @param x an vector.
+#' @param low lower value.
+#' @param high upper value.
+#' @return returns scaled vector.
+#' @export
+#' @details  From `rescale` in package `network`
 ## wll-05-05-2016: Rescale vector between min and max
-## From 'rescale' package 'network'
-mm_scale <- function(nchar, low, high) {
-  min_d <- min(nchar)
-  max_d <- max(nchar)
-  rscl <- ((high - low) * (nchar - min_d)) / (max_d - min_d) + low
-  rscl
-}
-
-## ------------------------------------------------------------------------
-## wll-12-01-2016: calculate the ellipse values
-elli <- function(x, y, conf.level = 0.95) {
-  Var <- var(cbind(x, y))
-  Mean <- cbind(mean(x), mean(y))
-  Elli <- ellipse::ellipse(Var, centre = Mean, level = conf.level)
+mm_scale <- function(x, low, high) {
+  mi <- min(x)
+  ma <- max(x)
+  res <- ((high - low) * (x - mi)) / (ma - mi) + low
+  res
 }
 
 ## --------------------------------------------------------------------------
+#' Trim white spaces
+#' 
+#' Trim white spaces.
+#' 
+#' @param string a character string to be processed.
+#' @return returns a trimmed string.
+#' @export 
 ## lwc-29-04-2013: trim white spaces
 str_trim <- function(string) {
   string <- gsub("^[ \t]+|[ \t]+$", "", string) ## trim white spaces
@@ -1293,6 +1309,13 @@ str_trim <- function(string) {
 }
 
 ## ------------------------------------------------------------------------
+#' Calculate the percentage of non digits
+#' 
+#' Calculate the percentage of non digits.
+#' 
+#' @param mat a data matrix.
+#' @return returns an vector.
+#' @export  
 ## wll-15-09-2015: Calculate the percentage of non digits
 non_digit <- function(mat) {
   mat <- as.data.frame(mat)
@@ -1302,6 +1325,13 @@ non_digit <- function(mat) {
 }
 
 ## ------------------------------------------------------------------------
+#' Calculate the non-zero percentage
+#' 
+#' Calculate the non-zero percentage.
+#' 
+#' @param mat a data matrix.
+#' @return returns an vector.
+#' @export  
 ## wll-09-09-2015: Calculate the non-zero percentage
 ## wll-22-10-2015: minor changes
 ## ------------------------------------------------------------------------
@@ -1314,7 +1344,14 @@ non_zero <- function(mat) {
 }
 
 ## ------------------------------------------------------------------------
-## wll-09-09-2015: Calculate the non-zero percentage
+#' Calculate the zero percentage
+#' 
+#' Calculate the zero percentage
+#' 
+#' @param mat a data matrix.
+#' @return returns an vector.
+#' @export  
+## wll-09-09-2015: Calculate the zero percentage
 ## wll-22-10-2015: minor changes
 is_zero <- function(mat) {
   mat <- as.data.frame(mat)
@@ -1325,10 +1362,15 @@ is_zero <- function(mat) {
 }
 
 ## --------------------------------------------------------------------------
+#' Get row index of missing values in data frame
+#' 
+#' Get row index of missing values in data frame.
+#' 
+#' @param df  data frame being used to check index of missing values.
+#' @param vars vector of variable names in `df` for missing values checking.
+#' @return returns an vector of missing value index.
+#' @export 
 ## lwc-25-08-2011: get row index of missing values in data frame.
-## Arguments:
-##   df   -  data frame being used to check index of missing values.
-##   vars -  vector of variable names in df for missing values checking.
 df_na_idx <- function(df, vars) {
   tmp <- df[, vars]
   idx <- complete.cases(tmp)
@@ -1336,6 +1378,13 @@ df_na_idx <- function(df, vars) {
 }
 
 ## ------------------------------------------------------------------------
+#' Row binding of a list of data matrix
+#' 
+#' Row bind of a list of matrix or data frame with the same dimension.
+#' 
+#' @param list a list of data matrix.
+#' @return returns a data mstrix.
+#' @export 
 ## wll-26-01-2016: 'rbind' matrix or data frame with the same dimension
 ## from a list.
 rbind_df <- function(list) {
@@ -1360,23 +1409,37 @@ rbind_df <- function(list) {
 }
 
 ## ------------------------------------------------------------------------
+#' Convert matrix to df
+#' 
+#' Convert matrix to df
+#' 
+#' @param x a matrix
+#' @return returns a data frame.
+#' @details from `.matrix_to_df` of package `plyr`.
+#' @export 
 ## lwc-28-01-2016: Convert matrix to df.
-##  Note: from '.matrix_to_df' of package 'plyr'
-mat2df <- function(.data) {
-  cnames <- colnames(.data)
-  if (is.null(cnames)) cnames <- rep("", ncol(.data))
-  .data <- as.data.frame(.data, stringsAsFactors = FALSE)
-  colnames(.data) <- cnames
-  .data
+mat2df <- function(x) {
+  cnames <- colnames(x)
+  if (is.null(cnames)) cnames <- rep("", ncol(x))
+  x <- as.data.frame(x, stringsAsFactors = FALSE)
+  colnames(x) <- cnames
+  x
 }
 
 ## ------------------------------------------------------------------------
+#' Transpose a numeric data frame (with/without NAs)
+#' 
+#' Transpose a numeric data frame (with/without NAs)
+#' 
+#' @param x a data frame
+#' @return returns a transposed data frame.
+#' @details It is used mostly for numeric data frame with NAs and return a
+##   numeric data frame.
+#' @export 
+#' @examples  
+#' x <- data.frame(group = c(1,1,2,NA,2), val = c(6,4,6,3.1,NA))
+#' x <- df_t(x)
 ## wl-01-06-2011: Transpose a numeric data frame (with/without NAs)
-## Note: It is used mostly for numeric data frame with NAs and return a
-## numeric data frame
-## Usages:
-## x <- data.frame(group = c(1,1,2,NA,2), val = c(6,4,6,3.1,NA))
-## x <- df.t(x)
 df_t <- function(x) {
   x <- data.frame((t(x)), stringsAsFactors = F)
 
@@ -1392,14 +1455,32 @@ df_t <- function(x) {
 }
 
 ## ------------------------------------------------------------------------
+#' Get dimension matrix of a list of data frame
+#' 
+#' Retuns a matrix for dimension information of a list of data frame.
+#' 
+#' @param mat_list  a list of data frame.
+#' @return a data frame.
+#' @export 
 ## wll-25-01-2017: Wrapper function for dim matrix of a list of data frame
-dim_mat <- function(mat) {
-  res <- as.data.frame(t(sapply(mat, dim)))
+dim_mat <- function(mat_list) {
+  res <- as.data.frame(t(sapply(mat_list, dim)))
   names(res) <- c("row", "col")
   res
 }
 
 ## ------------------------------------------------------------------------
+#' Sort a data frame
+#' 
+#' sort a date fram and keep the row names.
+#' 
+#' @param df a data frame.
+#' @param ... further parameters to `order`.
+#' @return returns a sorted data frame.
+#' @export 
+#' @details This function is modified from `arrange` of R package `plyr`.
+#'   `arrange` deliberately remove rownames, but sometimes it is worth to 
+#'   keep them.
 ## wll-08-02-2017: 'arrange' deliberately remove rownames, but sometimes it
 ## is worth to keep them.
 arrange_row <- function(df, ...) {
@@ -1415,21 +1496,35 @@ arrange_row <- function(df, ...) {
 }
 
 ## ------------------------------------------------------------------------
+#' Convert a list of unequal vectors to a data frame
+#' 
+#' Convert a list of unequal vectors to a data frame.
+#' 
+#' @param x a list of vector.
+#' @return returns a data matrix.
+#' @importFrom plyr rbind.fill
+#' @export 
 ## wll-09-11-2015: convert a list of unequal vectors to a data frame
 vec2dat <- function(x) {
 
   ## to-do: check if x is a list
   ## require(plyr)
   res <- lapply(x, function(y) as.data.frame(t(as.data.frame(y))))
-  res <- do.call(rbind.fill, res)
+  res <- do.call(plyr::rbind.fill, res)
 }
 
 ## -------------------------------------------------------------------------
+#' Save PS and TIFF file
+#' 
+#' Save PS and TIFF file
+#' 
+#' @param handle figure handle from lattice
+#' @param PRE directory and prefix of file name
+#' @param fn file name
+#' @return no return.
+#' @noRd 
+#' @keywords internal
 ## lwc-23-11-2013: save PS and TIFF file
-## Arguments:
-##  handle -- figure handle from lattice
-##  PRE    -- directory and prefix of file name
-##  fn     -- file name
 ps_tiff <- function(handle, PRE = NULL, fn = "temp") {
   trellis.device(
     device = "postscript", color = TRUE,
@@ -1442,7 +1537,7 @@ ps_tiff <- function(handle, PRE = NULL, fn = "temp") {
   dev.off()
 
   tiff(
-    file = paste(PRE, fn, ".tiff", sep = "_"), width = 10, height = 10,
+    filename = paste(PRE, fn, ".tiff", sep = "_"), width = 10, height = 10,
     units = "in", res = 300, compression = "lzw"
   )
   plot(handle)
@@ -1450,6 +1545,15 @@ ps_tiff <- function(handle, PRE = NULL, fn = "temp") {
 }
 
 ## --------------------------------------------------------------------------
+#' Extension of `ggdendro` with cluster centre.
+#' 
+#' Retrun a `ggdendro` extension with cluster centres.
+#' 
+#' @param hc an object of `hclust`.
+#' @param k the number of clusters.
+#' @return returns `ggplot2` plot.
+#' @details See `ggdendro` extension from https://bit.ly/2QOPSyJ for details.
+#' @noRd 
 ## wl-06-05-2021, Thu: ggdendro extension. From https://bit.ly/2QOPSyJ
 ## dendro_data_k(): takes a k argument, an integer, specifying the
 ## number of desired clusters.
@@ -1480,6 +1584,18 @@ dendro_data_k <- function(hc, k) {
   hcdata
 }
 
+## --------------------------------------------------------------------------
+#' Plot `ggdendro` with clusters
+#' 
+#' Plot `ggdendro` with clusters.
+#' 
+#' @param hcdata a data mstrix return from `dendro_data_k`.
+#' @param direction where to plot dendrogram.
+#' @param fan the orientation.
+#' @param branch.size,label.size,nudge.lable,expand.y a set of parameters to 
+#'   control `ggdendro`.
+#' @return returns a `ggplot2` plot of dendrogram.
+#' @noRd  
 plot_ggdendro <- function(hcdata,
                           direction   = c("lr", "rl", "tb", "bt"),
                           fan         = FALSE,
@@ -1573,13 +1689,20 @@ plot_ggdendro <- function(hcdata,
 }
 
 ## ------------------------------------------------------------------------
+#' Split a vector into chunks
+#' 
+#' Split a vector into chunks.
+#' 
+#' @param x an vector.
+#' @param n length of chunk.
+#' @return return the split chunk.
+#' @export  
+#' @details For details, see https://bit.ly/2SM4m2G
+#' i@examples 
+#' x <- 1:10
+#' n <- 3
+#' chunk(x, n)
 ## wl-01-06-2021, Tue: Split a vector into chunks.
-##  see https://bit.ly/2SM4m2G
-## x <- 1:10
-## n <- 3
-## chunk_1(x, n)
-## chunk_2(x, n)
-## chunk_3(x, n)
 chunk <- function(x,n) {
   res <- split(x, ceiling(seq_along(x) / n))
 }
@@ -1617,6 +1740,93 @@ chunk_3 <- function(x, n, force.number.of.groups = TRUE, len = length(x),
 }
 
 ## ------------------------------------------------------------------------
+#' PCA plot
+#'
+#' Plot PCA of a matrix or data frame with base R function.
+#'
+#' @param x a matrix for plotting. Should have row names
+#' @param y a factor or character vector specifying the group information of
+#'   the row.
+#' @param scale a logical flag to indicate whether or not scale \code{x}.
+#' @param ep.plot plot ellipse or not.
+#' @param ... further parameters passed to `plot`
+#'
+#' @return a base R graphics object.
+#' @details
+#'   The `rownames` of `x` will be shown in the plot. `y` is used to indicate
+#'   the group of row of `x`.
+#' @author Wanchang Lin
+#' @examples
+#' data(iris)
+#' pca_plot(iris[, 1:4], iris[, 5], ep.plot = TRUE)
+#' @keywords multivariate
+#' @export
+## wl-04-11-2015, Wed: PCA plot with rownames of matrix.
+## wl-09-11-2021, Tue: Slightly modified from mt::pca.plot.
+pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
+
+  ## wl-09-11-2021, Tue: fix a bug
+  if (is.null(rownames(x))) {
+    rownames(x) <- 1:nrow(x)
+  }
+
+  ## wll-12-12-2008: Plot ellipse
+  elli.plot <- function(x, y, ...) {
+    Var <- var(cbind(x, y))
+    Mean <- cbind(mean(x), mean(y))
+    Elli <- ellipse(Var, centre = Mean, level = 0.975)
+    lines(Elli[, 1], Elli[, 2], ...)
+  }
+
+  ## wll-29-03-2008: Compute the PCA scores and proportion of variance
+  pca.comp <- function(x, scale = FALSE, pcs = 1:2, ...) {
+    pca <- prcomp(x, scale. = scale, ...)
+    vars <- pca$sdev^2       # i.e. eigenvalues/variance
+    vars <- vars / sum(vars) # Proportion of Variance
+    names(vars) <- colnames(pca$rotation)
+    vars <- round(vars * 100, 2)
+    ## dfn  <- paste(names(vars)," (",vars[names(vars)],"%)",sep="")
+    dfn <- paste(names(vars), ": ", vars[names(vars)], "%", sep = "")
+    x <- data.frame(pca$x)
+    x <- x[, pcs]
+    vars <- vars[pcs]
+    dfn <- dfn[pcs]
+    ## names(x) <- dfn
+
+    return(list(scores = x, vars = vars, varsn = dfn))
+  }
+
+  ## x <- as.matrix(x)
+  pca <- pca.comp(x, scale = scale, pcs = 1:2, ...)
+
+  val <- pca$scores
+  val <- val[c("PC2", "PC1")] # Swap position
+
+  plot(val,
+    type = "n", cex = 1.0, cex.lab = 1.0, cex.axis = 1.0, cex.main = 1.0,
+    ylab = paste("PC1", " (", pca$vars[1], "%)", sep = ""),
+    xlab = paste("PC2", " (", pca$vars[2], "%)", sep = ""),
+    ...
+  )
+
+  if (is.null(y)) {
+    text(val[, 1], val[, 2], rownames( x), cex = 0.7, ...)
+  } else {
+    y <- factor(y)
+    text(val[, 1], val[, 2], rownames(x), cex = 0.7, col = unclass(y), ...)
+
+    if (ep.plot) {
+      tmp <- as.factor(as.numeric(unclass(y)))
+      for (i in levels(tmp)) {
+        idx <- tmp == i
+        elli.plot(val[idx, 1], val[idx, 2], col = i)
+      }
+    }
+  }
+  invisible(NULL)
+}
+
+## ------------------------------------------------------------------------
 #' @title Extra functions for metabolomics data analysis
 #' @name mtExtra
 #'
@@ -1636,8 +1846,9 @@ chunk_3 <- function(x, n, force.number.of.groups = TRUE, len = length(x),
 #' @importFrom ellipse ellipse
 #' @importFrom graphics lines text
 #' @importFrom stats prcomp quantile sd var
-#' @import tidyr dplyr purrr
-#' @importFrom reshape2 melt
+#' @import tidyr dplyr purrr tibble ggplot2 lattice ggraph
+#' @importFrom latticeExtra dendrogramGrob
+#' @importFrom reshape2 melt colsplit
 #' @importFrom grDevices colorRampPalette dev.off tiff
 #' @importFrom stats as.dendrogram as.dist as.hclust complete.cases cor
 #'   cutree dist hclust line order.dendrogram p.adjust pf pt qt
@@ -1645,3 +1856,50 @@ chunk_3 <- function(x, n, force.number.of.groups = TRUE, len = length(x),
 #' @docType package
 #' @aliases mtExtra mtExtra-package
 NULL
+
+##  1) feat_count
+##  2) feat_count_1
+##  3) dat_filter
+##  4) iqr_filter
+##  5) sd_zero_filter
+##  6) sd_filter
+##  7) mv_filter
+##  8) rsd
+##  9) plot_aam
+## 10) plot_pval
+## 11) cor_hcl
+## 12) upd_data
+## 13) cor_net
+## 14) bi_cor_net
+## 15) dat_cor
+## 16) pcor_dat
+## 17) gg_heat_dend
+## 18) heat_dend
+## 19) vec_ci
+## 20) vec_norm
+## 21) net_graph
+## 22) graph_stats
+## 23) vertex_stats
+## 24) cor_tab
+## 25) sym2long
+## 26) std_scale
+## 27) mm_scale
+## 28) str_trim
+## 29) non_digit
+## 30) non_zero
+## 31) is_zero
+## 32) df_na_idx
+## 33) rbind_df
+## 34) mat2df
+## 35) df_t
+## 36) dim_mat
+## 37) arrange_row
+## 38) vec2dat
+## 39) ps_tiff
+## 40) dendro_data_k
+## 41) plot_ggdendro
+## 42) chunk
+## 43) chunk_1
+## 44) chunk_2
+## 45) chunk_3
+## 46) pca_plot
