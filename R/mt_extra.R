@@ -76,7 +76,7 @@ feat_count_1 <- function(fs.ord, top.k = 30) {
 #' @return  a filtered list of metabolomics data.
 #' @export
 ## wl-03-06-2021, Thu: wrapper for filtering MS/NMR data
-dat_filter <- function(x, method = "var_filter", ...) {
+dat_filter <- function(x, method = "iqr_filter", ...) {
 
   method <-
     if (is.function(method)) {
@@ -335,18 +335,19 @@ plot_pval <- function(pval_list) {
 
   ## wl-09-11-2021, Tue: equvalent to 'melt' by tidyverse. May be a temp
   ## function.
+  ## wl-16-11-2021, Tue: use '.data' to prevent warning in 'rcmd check'
   tmp <- lapply(tmp, function(x) {
     x <- as_tibble(x) %>%
-    rownames_to_column() %>%
-    mutate(rowname = as.numeric(rowname))
+    rownames_to_column(var = "rn") %>%
+    mutate(rn = as.numeric(.data$rn))
   })
   tmp <- tmp %>%
     bind_rows(.id = "data") %>%
-    pivot_longer(-c(data, rowname), names_to = "variable") %>%
+    pivot_longer(-c(data, rn), names_to = "variable") %>%
     filter(complete.cases(.))
 
   ## wl-24-05-2021, Mon: combine two legends with the same legend title
-  p <- ggplot(tmp, aes(x = rowname, y = value)) +
+  p <- ggplot(tmp, aes(x = rn, y = value)) +
     geom_line(aes(linetype = variable, color = variable)) +
     geom_hline(yintercept = 0.05, linetype = "dashed", color = "red") +
     labs(x = "Index of variable", y = "p-values",
@@ -460,6 +461,11 @@ upd_data <- function(dat.all, ord) {
 #'   keep those with coeeficient larger than `thres`.
 #' @param fig_title a chracter string for gifure title.
 #' @return a list of `ggplot2` plots. 
+#' @importFrom ggraph create_layout ggraph geom_edge_link geom_node_point
+#'    scale_edge_colour_discrete geom_node_text
+#'    facet_edges facet_nodes
+#' @importFrom igraph graph_from_data_frame delete_vertices cluster_louvain
+#'   E<- V<-
 #' @export  
 ## wl-07-10-2021, Thu: Correlation network analysis
 ## wl-08-10-2021, Fri: Call function 'net_graph'
@@ -537,6 +543,10 @@ cor_net <- function(mat,
 #' @param thres correlation coeeficient threshold for network analysis.
 #' @param dn a character string for correlation name.
 #' @return a list of `ggplot2` plots.
+#' @importFrom igraph graph_from_data_frame bipartite_mapping V E
+#'   cluster_edge_betweenness cluster_fast_greedy degree membership V<- E<-
+#' @importFrom ggraph create_layout ggraph facet_nodes geom_node_point 
+#'   geom_edge_link geom_node_text scale_edge_color_manual geom_edge_arc
 #' @export 
 ## wl-07-05-2021, Fri: Bipartite/two-mode correlation network
 ## wl-19-06-2021, Thu: change family font from 'Arial' to 'sans'. So no
@@ -712,6 +722,7 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #' @param dend.line.size dendrogram line size.
 #' @return retuns an object of class `ggplot2`.
 #' @importFrom cowplot axis_canvas insert_yaxis_grob ggdraw
+#' @importFrom ggdendro dendro_data segment
 #' @export 
 #' @examples 
 #' library(ggplot2)
@@ -734,8 +745,8 @@ gg_heat_dend <- function(mat,
 
   ## data_m <- tibble::rownames_to_column(mat) %>% reshape2::melt()
   mat <- as.data.frame(mat)
-  data_m <- cbind(rowname = rownames(mat), mat)
-  data_m <- reshape2::melt(data_m, id.vars = "rowname")
+  data_m <- cbind(rn = rownames(mat), mat)
+  data_m <- reshape2::melt(data_m, id.vars = "rn")
 
   # Cluster rows
   if (row.dend) {
@@ -743,7 +754,7 @@ gg_heat_dend <- function(mat,
                                    method = clust.method))
     row.ord <- order.dendrogram(dd.row)
     ordered_row_names <- row.names(mat[row.ord, ])
-    data_m$rowname <- factor(data_m$rowname, levels = ordered_row_names)
+    data_m$rn <- factor(data_m$rn, levels = ordered_row_names)
   }
 
   # Cluster columns
@@ -756,7 +767,7 @@ gg_heat_dend <- function(mat,
   }
 
   ## wl-17-06-2021, Thu: remove vjust for good
-  p_heat <- ggplot(data_m, aes(x = variable, y = rowname, fill = value)) +
+  p_heat <- ggplot(data_m, aes(x = variable, y = rn, fill = value)) +
     theme_minimal() + geom_tile() + xlab("") + ylab("") +
     theme(axis.line = element_line(size = 0),
           text = element_text(size = font.size),
@@ -826,6 +837,8 @@ gg_heat_dend <- function(mat,
 #' @param xlab,ylab,main character strings for `xlab`, `ylab` and figure title.
 #' @param ... further parameters for `latticw`.
 #' @return an object of class `lattice`.
+#' @importFrom lattice levelplot panel.fill panel.levelplot
+#' @importFrom latticeExtra dendrogramGrob
 #' @export 
 #' @examples 
 #' heat_dend(mtcars)
@@ -956,6 +969,11 @@ vec_norm <- function(x, method = "median", scale = TRUE) {
 #' @param node_df graph vertex matrix.
 #' @return an `igraph` object with some vertex statistics and community
 #'  detection center.
+#' @importFrom igraph graph_from_data_frame delete_vertices set_vertex_attr
+#' @importFrom igraph edge_attr edge_attr_names vertex_attr vertex_attr_names
+#'   gorder gsize V E 
+#' @importFrom igraph cluster_fast_greedy cluster_edge_betweenness
+#'   cluster_louvain membership components
 #' @export 
 ## wl-05-11-2020, Thu: create an igraph object
 net_graph <- function(edge_df, node_df = NULL) {
@@ -1002,6 +1020,9 @@ net_graph <- function(edge_df, node_df = NULL) {
 #' 
 #' @param g an `igraph` object.
 #' @return a vector of graph level metrics.
+#' @importFrom igraph transitivity diameter edge_density reciprocity 
+#'   assortativity_degree cluster_fast_greedy modularity mean_distance radius
+#'   centr_degree centr_clo centr_betw centr_eigen
 #' @export 
 ## wl-22-03-2017: Graph level metrics
 graph_stats <- function(g) {
@@ -1080,6 +1101,9 @@ graph_stats <- function(g) {
 #' Return node descriptive metrics.
 #' 
 #' @param g an `igraph` object.
+#' @importFrom igraph distances gorder diameter transitivity betweenness
+#'   eccentricity knn cluster_edge_betweenness cluster_fast_greedy
+#'   membership
 #' @export 
 ## wl-08-02-2017: Node descriptive
 ## wl-09-02-2017: add more descriptive
@@ -1522,6 +1546,7 @@ vec2dat <- function(x) {
 #' @param PRE directory and prefix of file name
 #' @param fn file name
 #' @return no return.
+#' @importFrom lattice trellis.device
 #' @noRd 
 #' @keywords internal
 ## lwc-23-11-2013: save PS and TIFF file
@@ -1595,6 +1620,7 @@ dendro_data_k <- function(hc, k) {
 #' @param branch.size,label.size,nudge.lable,expand.y a set of parameters to 
 #'   control `ggdendro`.
 #' @return returns a `ggplot2` plot of dendrogram.
+#' @importFrom ggdendro label
 #' @noRd  
 plot_ggdendro <- function(hcdata,
                           direction   = c("lr", "rl", "tb", "bt"),
@@ -1627,7 +1653,7 @@ plot_ggdendro <- function(hcdata,
     p <- p +
       coord_polar(direction = -1) +
       scale_x_continuous(breaks = NULL,
-                         limits = c(0, nrow(label(hcdata)))) +
+                         limits = c(0, nrow(ggdendro::label(hcdata)))) +
       scale_y_reverse(breaks = ybreaks)
   } else {
     p <- p + scale_x_continuous(breaks = NULL)
@@ -1665,7 +1691,7 @@ plot_ggdendro <- function(hcdata,
   hcdata$labels$angle <- labelParams$angle
 
   p <- p +
-    geom_text(data         =  label(hcdata),
+    geom_text(data         =  ggdendro::label(hcdata),
                aes(x       =  x,
                    y       =  y,
                    label   =  label,
@@ -1846,13 +1872,13 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #' @importFrom ellipse ellipse
 #' @importFrom graphics lines text
 #' @importFrom stats prcomp quantile sd var
-#' @import tidyr dplyr purrr tibble ggplot2 lattice ggraph
-#' @importFrom latticeExtra dendrogramGrob
-#' @importFrom reshape2 melt colsplit
+#' @import tidyr dplyr purrr tibble ggplot2
+#' @importFrom reshape2 melt dcast colsplit
 #' @importFrom grDevices colorRampPalette dev.off tiff
 #' @importFrom stats as.dendrogram as.dist as.hclust complete.cases cor
 #'   cutree dist hclust line order.dendrogram p.adjust pf pt qt
 #' @importFrom utils data head
+#' @importFrom rlang .data
 #' @docType package
 #' @aliases mtExtra mtExtra-package
 NULL

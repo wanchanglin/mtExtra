@@ -4,7 +4,7 @@
 \alias{dat_filter}
 \title{MS/NMR data filtering}
 \usage{
-dat_filter(x, method = "var_filter", ...)
+dat_filter(x, method = "iqr_filter", ...)
 }
 \arguments{
 \item{x}{a list of metabolomics data, including intensity data and peak
