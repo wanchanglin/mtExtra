@@ -17,3 +17,11 @@ returns a data frame of pair-wise comparison.
 \description{
 Convert a symmetric table(short format) to long format
 }
+\examples{
+co <- cor_tab(mtcars, cor.method = "spearman", adj.method = "BH")
+names(co)
+corr <- sym2long(co$r, tri = "upper")
+pval <- sym2long(t(co$p), tri = "upper")
+padj <- sym2long(co$p, tri = "upper")
+tmp  <- data.frame(corr, pval, padj)
+}

@@ -20,3 +20,7 @@ retuns a vector of summary.
 Calculate the statistical summary of a vector, including confidential
 interval.
 }
+\details{
+Used for error bar plotting. Modify from
+https://bit.ly/3onsqot
+}

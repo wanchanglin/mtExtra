@@ -37,3 +37,14 @@ The original implementation is from Bill Venables, the author of R great
 book MASS. For details, see
 https://stat.ethz.ch/pipermail/r-help/2001-November/016201.html
 }
+\examples{
+co <- cor_tab(mtcars, cor.method = "spearman", adj.method = "BH")
+names(co)
+
+\dontrun{
+library(pysch)
+co <- corr.test(mtcars, method="spearman",adjust="BH")
+# From pysch: For symmetric matrices, p values adjusted for multiple tests
+# are reported above the diagonal.
+}
+}

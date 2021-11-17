@@ -19,7 +19,8 @@ Split a vector into chunks.
 }
 \details{
 For details, see https://bit.ly/2SM4m2G
-i@examples
+}
+\examples{
 x <- 1:10
 n <- 3
 chunk(x, n)

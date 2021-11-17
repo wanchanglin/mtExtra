@@ -1,6 +1,31 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
 ## ------------------------------------------------------------------------
+#' Batch shifting
+#' 
+#' Remove batch effect withing each block.
+#' 
+#' @param x a data matrix.
+#' @param y  a categorical data for batch/block information.
+#' @param method method for shifting.
+#' @return returns a shifted data matrix.
+#' @references 
+#'   Silvia Wagner, et.al, Tools in Metabonomics: An Integrated Validation
+#'   Approach for LC-MS Metabolic Profiling of Mercapturic Acids in Human
+#'   Urine Anal. Chem., 2007, 79 (7), pp 2918-2926, DOI: 10.1021/ac062153w
+#' @export 
+## lwc-07-07-2011: batch shifting: remove mean withing each batch/block
+batch_shift <- function(x, y, method = "mean") {
+  x <- as.data.frame(x)
+
+  g.mean <- sapply(x, function(x) tapply(x, y, method, na.rm = T))
+  g.mean <- sapply(1:ncol(x), function(i) g.mean[, i][y])
+  x <- x - g.mean
+
+  return(x)
+}
+
+## ------------------------------------------------------------------------
 #' Get the count number of features
 #' 
 #' Calculate the features counts based on the frequency of multiple selectors.
@@ -911,10 +936,10 @@ heat_dend <- function(mat, x.rot = 60,
 #' @param na.rm remove NA or not.
 #' @param conf.interval a numeric value for confidential interval.
 #' @return retuns a vector of summary.
+#' @details Used for error bar plotting. Modify from
+#'   https://bit.ly/3onsqot
 #' @export 
-#'  
 ## wl-18-05-2021, Tue: stats of a vector.
-##  Used for error bar plotting. Modify from https://bit.ly/3onsqot
 vec_ci <- function(x, na.rm = FALSE, conf.interval = .95) {
 
   ## Handle NA's: if na.rm==T, don't count them
@@ -1185,7 +1210,7 @@ vertex_stats <- function(g) {
   )
 
   ## sort based on degree and abundance
-  ## node.stats <- arrange.row(node.stats, desc(Degree), desc(Abundance))
+  ## node.stats <- arrange_row(node.stats, desc(Degree), desc(Abundance))
 
   return(node.stats)
 }
@@ -1210,7 +1235,17 @@ vertex_stats <- function(g) {
 #'   The original implementation is from Bill Venables, the author of R great
 #'   book MASS. For details, see
 #'   https://stat.ethz.ch/pipermail/r-help/2001-November/016201.html
-#' @export  
+#' @export 
+#' @examples 
+#' co <- cor_tab(mtcars, cor.method = "spearman", adj.method = "BH")
+#' names(co)
+#' 
+#' \dontrun{
+#' library(pysch)
+#' co <- corr.test(mtcars, method="spearman",adjust="BH")
+#' # From pysch: For symmetric matrices, p values adjusted for multiple tests
+#' # are reported above the diagonal.
+#' }
 ## wl-23-06-2015: Get correlation coefficient and p-values
 cor_tab <- function(x,
                     cor.method = c("pearson", "kendall", "spearman"),
@@ -1249,6 +1284,13 @@ cor_tab <- function(x,
 #' @param x a symmetric matrix-like data set.
 #' @param tri triangular being used.
 #' @return returns a data frame of pair-wise comparison.
+#' @examples 
+#' co <- cor_tab(mtcars, cor.method = "spearman", adj.method = "BH")
+#' names(co)
+#' corr <- sym2long(co$r, tri = "upper")
+#' pval <- sym2long(t(co$p), tri = "upper")
+#' padj <- sym2long(co$p, tri = "upper")
+#' tmp  <- data.frame(corr, pval, padj)
 #' @export 
 ## wl-24-06-2015: Convert a symmetric table(short format) to long format
 sym2long <- function(x, tri = c("upper", "lower")) {
@@ -1268,7 +1310,7 @@ sym2long <- function(x, tri = c("upper", "lower")) {
     stop("Invalid method")
   }
 
-  if (F) { ## require(reshape2)
+  if (F) { 
     res <- reshape2::melt(x)
     res <- res[complete.cases(res), ]
     colnames(res) <- c("com1", "com2", "var")
@@ -1724,7 +1766,7 @@ plot_ggdendro <- function(hcdata,
 #' @return return the split chunk.
 #' @export  
 #' @details For details, see https://bit.ly/2SM4m2G
-#' i@examples 
+#' @examples 
 #' x <- 1:10
 #' n <- 3
 #' chunk(x, n)
