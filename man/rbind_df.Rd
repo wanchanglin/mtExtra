@@ -15,3 +15,25 @@ returns a data mstrix.
 \description{
 Row bind of a list of matrix or data frame with the same dimension.
 }
+\examples{
+ 
+df1 <- data.frame(x = c(1, 3), y = c(2, 4))
+df2 <- data.frame(x = c(5, 7), y = c(6, 8))
+df  <- list(df1 = df1, df2 = df2)
+rbind_df(df)
+
+tmp <- vector(mode = "list", length = 3)
+for (i in 1:3) {
+  tmp[[i]] <- data.frame(
+    a = sample(letters, 5, rep = TRUE),
+    b = rnorm(5), c = rnorm(5)
+  )
+}
+names(tmp) <- c("abc", "def", "ghi")
+tmp
+
+do.call("rbind", tmp)
+dplyr::bind_rows(tmp, .id = "column_label")
+plyr::ldply(tmp, data.frame, .id = "column_label")
+rbind_df(tmp)
+}

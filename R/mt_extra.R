@@ -1488,6 +1488,26 @@ df_na_idx <- function(df, vars) {
 #' 
 #' @param list a list of data matrix.
 #' @return returns a data mstrix.
+#' @examples  
+#' df1 <- data.frame(x = c(1, 3), y = c(2, 4))
+#' df2 <- data.frame(x = c(5, 7), y = c(6, 8))
+#' df  <- list(df1 = df1, df2 = df2)
+#' rbind_df(df)
+#' 
+#' tmp <- vector(mode = "list", length = 3)
+#' for (i in 1:3) {
+#'   tmp[[i]] <- data.frame(
+#'     a = sample(letters, 5, rep = TRUE),
+#'     b = rnorm(5), c = rnorm(5)
+#'   )
+#' }
+#' names(tmp) <- c("abc", "def", "ghi")
+#' tmp
+#' 
+#' do.call("rbind", tmp)
+#' dplyr::bind_rows(tmp, .id = "column_label")
+#' plyr::ldply(tmp, data.frame, .id = "column_label")
+#' rbind_df(tmp)
 #' @export 
 ## wll-26-01-2016: 'rbind' matrix or data frame with the same dimension
 ## from a list.
@@ -1607,14 +1627,20 @@ arrange_row <- function(df, ...) {
 #' @param x a list of vector.
 #' @return returns a data matrix.
 #' @importFrom plyr rbind.fill
+#' @examples 
+#' lst <- list(data.frame(a = 1, b = 2), data.frame(a = 2, c = 3, d = 5))
+#' do.call(plyr::rbind.fill, lst)
+#' vec <- list(var1 = c(a = 1, b = 2), var2 = c(a = 2, c = 3, d = 5))
+#' vec2dat(vec)
 #' @export 
 ## wll-09-11-2015: convert a list of unequal vectors to a data frame
 vec2dat <- function(x) {
 
   ## to-do: check if x is a list
-  ## require(plyr)
   res <- lapply(x, function(y) as.data.frame(t(as.data.frame(y))))
   res <- do.call(plyr::rbind.fill, res)
+  ## Beware that no such function 'cbind.fil' in 'plyr'.
+	res
 }
 
 ## -------------------------------------------------------------------------

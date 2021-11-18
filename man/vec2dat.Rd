@@ -15,3 +15,9 @@ returns a data matrix.
 \description{
 Convert a list of unequal vectors to a data frame.
 }
+\examples{
+lst <- list(data.frame(a = 1, b = 2), data.frame(a = 2, c = 3, d = 5))
+do.call(plyr::rbind.fill, lst)
+vec <- list(var1 = c(a = 1, b = 2), var2 = c(a = 2, c = 3, d = 5))
+vec2dat(vec)
+}
