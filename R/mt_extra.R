@@ -1,5 +1,89 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
+#' ------------------------------------------------------------------------
+#' Univariate outlier detection
+#' 
+#' Perform outlier detection using univariate method.
+#' 
+#' @param x a numeric vector.
+#' @param method method for univariate outlier detection. Only `boxplot`, 
+#'   `mean` and `median` are supported.
+#' @return returns a logical vector.
+#' @references 
+#'   Wilcox R R, Fundamentals of Modern Statistical Methods: Substantially 
+#'   Improving Power and Accuracy, Springer 2010 (2nd edition), pages 31-35.
+#' @details
+#'  - `mean`: the absolute difference between that observation and the sample 
+#'    mean is more than 2 times of SD.
+#'  - `median`: the absolute difference between the observation and the sample
+#'    median is larger than 2 times of the Median Absolute Deviation divided
+#'    by 0.6745.
+#'  - `boxplot`: either smaller than the 1st quartile minus 1.5 times of IQR, 
+#'     or larger than the 3rd quartile plus 1.5 times of IQR.
+#' @examples 
+#' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
+#' outl_det_u(x, "boxplot")
+#' @export 
+## wl-19-09-2020, Sat: Univariate outlier detection.
+##   Modified from R package GmAMisc.
+outl_det_u <- function(x, method = c("boxplot", "median", "mean")) {
+  method <- match.arg(method)
+  if (method == "mean") {
+    outlier <- abs(x - mean(x)) > 2 * sd(x)
+  }
+  if (method == "median") {
+    med <- median(x)
+    mad <- median(abs(med - x))
+    outlier <- abs(x - med) > 2 * (mad / 0.6745)
+  }
+  if (method == "boxplot") {
+    q1 <- quantile(x, 0.25)
+    q3 <- quantile(x, 0.75)
+    iqr <- q3 - q1
+    outlier <- x < q1 - 1.5 * iqr | x > q3 + 1.5 * iqr
+  }
+  return(outlier)
+}
+
+#' ------------------------------------------------------------------------
+#' Multivariate outlier detection
+#' 
+#' Perform multivariate outlier detection.
+#' 
+#' @param x a data matrix.
+#' @param method methods for resistant estimation of multivariate location 
+#'   and scatter. Only `mve`, `mcd` and `classical` are supported.
+#' @param conf.level a confidential level.
+#' @return retuns a logical vector.
+#' @importFrom MASS cov.rob
+#' @seealso `cov.rob`
+#' @export 
+#' @examples  
+#' set.seed(134)
+#' x <- cbind(rnorm(80), rnorm(80), rnorm(80))
+#' y <- cbind(rnorm(10, 5, 1), rnorm(10, 5, 1), rnorm(10, 5, 1))
+#' x <- rbind(x, y)
+#' outl <- outl_det_m(x, method = "mcd", conf.level = 0.95)
+## lwc-30-01-2013: Multivariate outlier detection
+## lwc-04-02-2013: Major changes.
+## wll-01-12-2015: the results bewtween pca.outlier and outl_det_m are
+##   different. Need to be careful.
+## Note: "mve" and "mcd" are based on approximate search. User need to set up
+##       random seed by set.seed. For details, see ?cov.rob
+outl_det_m <- function(x, method = "mcd", conf.level = 0.95) {
+  method <- match.arg(method, c("mve", "mcd", "classical"))
+  x <- as.matrix(x)
+  covr <- MASS::cov.rob(x, method = method) # MASS. NAs are not allowed.
+  dis <- sqrt(mahalanobis(x, center = covr$center, cov = covr$cov))
+  cutoff <- sqrt(qchisq(conf.level, ncol(x)))
+
+  outlier <- dis > cutoff
+  # outlier <- which(outlier)
+  # if (!is.null(names(outlier))) outlier <- names(outlier)
+
+  return(outlier)
+}
+
 ## ------------------------------------------------------------------------
 #' Batch shifting
 #' 
@@ -1977,7 +2061,7 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #'
 #' @importFrom ellipse ellipse
 #' @importFrom graphics lines text
-#' @importFrom stats prcomp quantile sd var
+#' @importFrom stats prcomp quantile sd var mahalanobis median qchisq
 #' @import tidyr dplyr purrr tibble ggplot2
 #' @importFrom reshape2 melt dcast colsplit
 #' @importFrom grDevices colorRampPalette dev.off tiff
