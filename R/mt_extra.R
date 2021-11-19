@@ -1,6 +1,102 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
-#' ------------------------------------------------------------------------
+## ------------------------------------------------------------------------
+#' Select random sample with stratification
+#' 
+#' Select random sample with stratification from a binary group. 
+#' 
+#' @param grp a character string indicating two group information.
+#' @param len  length of random selection.
+#' @param strat a logical value indicated the sampling should be stratified.
+#' @return returns a selected index.
+#' @details multiple group is not supported at the current stage.
+#' @examples 
+#' cls <- iris[, 5, drop = TRUE]
+#' cls <- cls[cls == "setosa" | cls == "versicolor"]
+#' cls <- droplevels(cls)
+#' ind <- samp_strat(cls, 6, strat = TRUE)
+#' cls[ind]
+#' ind <- samp_strat(cls, 5, strat = TRUE)
+#' cls[ind]
+#' @export 
+## lwc-05-10-2010: randomly sample with stratification.
+samp_strat <- function(grp, len, strat = TRUE) {
+  ## to-do: should check the validity of arguments.
+  grp <- droplevels(factor(grp))
+  n <- length(grp)
+  if (strat) {
+    ## idx <- sample(1:n,n,replace=F)  #' shuffle
+    ## grp <- grp[idx]
+
+    idx.g <- lapply(levels(grp), function(x) which(grp == x))
+    ## idx.g <- lapply(levels(grp), function(x) grep(x,grp, fixed=T))
+
+    ratio <- table(grp)[1]
+    ratio <- ratio / n
+    ## only consider two class. should be more general.
+    len.1 <- trunc(len * ratio) 
+    len.2 <- len - len.1
+
+    ind <- mapply(function(x, y) {
+      sample(x, y, replace = F)
+    }, idx.g, c(len.1, len.2))
+    
+    ## wl-19-11-2021, Fri: fix a bug
+    if (is.matrix(ind)) {
+      ind <- as.vector(ind)
+    } else {
+     ind <- do.call(c, ind)
+    }
+    ind <- sample(ind, length(ind), replace = F) # shuffle
+  } else {
+    ind <- sample(1:n, len, replace = F)
+  }
+  return(ind)
+}
+
+## ------------------------------------------------------------------------
+#' Select random samples from each group
+#'  
+#' Select random samples from each group.
+#' 
+#' @param x  a character string or factor indicating class info.
+#' @param k  number of samples selected from each class.
+#' @param n  number of replicates.
+#' @return returns a selected index.
+#' @export 
+#' @examples  
+#'  cls   <- iris[, 5, drop = TRUE]
+#'  (tmp <- samp_sub(cls,k = 6, n = 2))
+#'  cls[tmp[[1]]]
+#'  table(cls[tmp[[1]]])
+## lwc-02-02-2007: randomly select k samples from each factor/class
+## NOTE: It should extend to chose different number of samples for different
+##       classes.
+samp_sub <- function(x, k, n = 10) {
+  ## if (!is.factor(y)) stop("y is not of class factor")
+  x <- droplevels(as.factor(x))
+  idx <- 1:length(x)
+  g <- levels(x)
+  ng <- length(g)
+
+  nidx <- list()
+  for (j in 1:ng) {
+    nidx <- c(nidx, list(idx[which(x == g[j])]))
+  }
+
+  out.idx <- list()
+  for (i in 1:n) {
+    kidx <- c()
+    for (j in 1:ng) {
+      kidx <- c(kidx, sample(nidx[[j]], k))
+    }
+    kidx <- sample(kidx) # shuffling
+    out.idx <- c(out.idx, list(kidx))
+  }
+  return(out.idx)
+}
+
+## ------------------------------------------------------------------------
 #' Univariate outlier detection
 #' 
 #' Perform outlier detection using univariate method.
@@ -45,7 +141,7 @@ outl_det_u <- function(x, method = c("boxplot", "median", "mean")) {
   return(outlier)
 }
 
-#' ------------------------------------------------------------------------
+## ------------------------------------------------------------------------
 #' Multivariate outlier detection
 #' 
 #' Perform multivariate outlier detection.
