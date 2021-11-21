@@ -398,15 +398,17 @@ sd_filter <- function(x, sig.cutoff = 0.95, na.rm = FALSE) {
 #' This function calculates the percentage of missing values and keeps those
 #' features with missing values percentage less than the designed threshold.
 #'
-#' @param x an vector, matrix or data frame.
-#' @param thres a threshold to drop off the variables.
+#' @param x a data matrix. The columns are features.
+#' @param thres threshold of missing values. Features less than this
+#'   threshold will be kept.
 #' @return a list of with contents: \itemize{
 #'  \item x the filtered data matrix
-#'  \item idx a vector of filtering index.
+#'  \item idx a logical vector of index for keeping features.
 #' }
 #' @export
 ## wl-14-06-2011: Filter features based on the percentage of missing values
 ## wl-17-06-2021, Thu: several version but this one is simple. Need to test
+## wl-06-11-2018, Tue: feature filter index based on missing values
 mv_filter <- function(x, thres = 0.3) {
 
   if (!(is.matrix(x) || is.data.frame(x))) {
@@ -424,6 +426,39 @@ mv_filter <- function(x, thres = 0.3) {
 
   ## index of features whose number of MVs are less than threshold
   idx <- count <= thres
+
+  x <- x[, idx, drop = F]
+  return(list(dat = x, idx = idx))
+}
+
+## -----------------------------------------------------------------------
+#' Filtering features based on RSD
+#' 
+#' Filtering features based on RSD.
+#' 
+#' @param x a data frame where columns are features.
+#' @param thres threshold of RSD. Features less than this threshold will be
+#'    kept.
+#' @return a list of with contents: \itemize{
+#'  \item x the filtered data matrix
+#'  \item idx a logical vector of index for keeping features.
+#' }
+#' @return a logical vector of index for keeping features.
+#' @export 
+## wl-06-11-2018, Tue: feature filter index based on RSD
+rsd_filter <- function(x, thres = 20) {
+  res <- rsd(x)
+  idx <- res < thres
+  idx[is.na(idx)] <- FALSE
+
+  if (F) {
+    summary(res)
+    tmp <- hist(res, plot = F)$counts
+    hist(res,
+      xlab = "rsd", ylab = "Counts", col = "lightblue",
+      ylim = c(0, max(tmp) + 10)
+    )
+  }
 
   x <- x[, idx, drop = F]
   return(list(dat = x, idx = idx))

@@ -7,14 +7,15 @@
 mv_filter(x, thres = 0.3)
 }
 \arguments{
-\item{x}{an vector, matrix or data frame.}
+\item{x}{a data matrix. The columns are features.}
 
-\item{thres}{a threshold to drop off the variables.}
+\item{thres}{threshold of missing values. Features less than this
+threshold will be kept.}
 }
 \value{
 a list of with contents: \itemize{
 \item x the filtered data matrix
-\item idx a vector of filtering index.
+\item idx a logical vector of index for keeping features.
 }
 }
 \description{
