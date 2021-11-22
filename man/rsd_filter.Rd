@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{rsd_filter}
 \alias{rsd_filter}
-\title{Filtering features based on RSD}
+\title{Filtering variable based on relative standard deviation (RSD)}
 \usage{
 rsd_filter(x, thres = 20)
 }
@@ -17,9 +17,7 @@ a list of with contents: \itemize{
 \item x the filtered data matrix
 \item idx a logical vector of index for keeping features.
 }
-
-a logical vector of index for keeping features.
 }
 \description{
-Filtering features based on RSD.
+Filtering variable based on relative standard deviation (RSD).
 }

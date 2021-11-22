@@ -13,10 +13,20 @@ rsd(x, na.rm = TRUE)
 before the computation proceeds.}
 }
 \value{
-RSD values
+RSD value multiplied by 100.
 }
 \description{
-Perform Relative Standard Deviation (RSD).
+Caculate Relative Standard Deviation(RSD). RSD is also known as the
+coefficient of variation (CV)
+}
+\details{
+Some notes:
+\itemize{
+\item The higher the CV, the greater the dispersion in the variable.
+\item The CV is often presented as the given ratio multiplied by 100
+\item Basically CV<10 is very good, 10-20 is good, 20-30 is acceptable,
+and CV>30 is not acceptable.
+}
 }
 \examples{
 data(iris)

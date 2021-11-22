@@ -1,6 +1,159 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
 ## ------------------------------------------------------------------------
+#' MS/NMR data filtering
+#'
+#' Wrapper function for filtering MS/NMR data.
+#'
+#' @param x a list of metabolomics data, including intensity data and peak
+#'   information.
+#' @param method the method for filtering.
+#' @param ... further parameters to be passed to `method`.
+#' @return  a filtered list of metabolomics data.
+#' @export
+## wl-03-06-2021, Thu: wrapper for filtering MS/NMR data
+dat_filter <- function(x, method = "var_filter", ...) {
+
+  method <-
+    if (is.function(method)) {
+      method
+    } else if (is.character(method)) {
+      get(method)
+    } else {
+      eval(method)
+    }
+
+  ## filtering features
+  idx <- method(x$data, ...)$idx
+  x$data <- x$data[, idx]
+  x$peak <- x$peak[idx, ]
+
+  return(x)
+}
+
+## ------------------------------------------------------------------------
+#' Filtering variable based on variability
+#'
+#' Perform variable filtering based on feature variability measurement such as
+#' standard deviation(SD) and interquantile range(IQR).
+#'
+#' @param x a matrix or data frame.
+#' @param method variability measurement method, such as `IQR` and `sd`.
+#' @param na.rm	a logical value indicating whether NA values should be stripped
+#'   before the computation proceeds.
+#' @param thres a numeric value between 0 and 1 for the threshold of
+#'  `quantile`. Features whose variability value is large than this threshold
+#'  will be kept.
+#' @return a list of with contents: \itemize{
+#'  \item x the filtered data matrix
+#'  \item idx a vector of filtering index.
+#' }
+#' @examples
+#' set.seed(100)
+#' x <- matrix(rnorm(20 * 10), ncol = 10)
+#' res <- var_filter(x, method = "sd", thres = 0.25)
+#' sum(res$idx)
+#' @export
+## wl-04-10-2016, Tue: Variable filtering based on IQR.
+## wl-19-01-2017, Thu: fix a bug. Use drop=F
+## wl-15-10-2020, Thu: return index as well
+## wl-22-11-2021, Mon: change function name and modify
+var_filter <- function(x, method = "IQR", na.rm = FALSE, thres = 0.25) {
+
+  method <-
+    if (is.function(method)) {
+      method
+    } else if (is.character(method)) {
+      get(method)
+    } else {
+      eval(method)
+    }
+
+  vars <- apply(x, 2, method, na.rm = na.rm)
+
+  if (0 < thres && thres < 1) {
+    quant <- quantile(vars, probs = thres)
+    selected <- !is.na(vars) & vars > quant
+  } else {
+    stop("Quantile threshold has to be between 0 and 1.")
+  }
+
+  x <- x[, selected, drop = F]
+  return(list(dat = x, idx = selected))
+}
+
+## -----------------------------------------------------------------------
+#' Filtering variable based on the percentage of missing values
+#'
+#' This function calculates the percentage of missing values and keeps those
+#' features with missing values percentage less than the designed threshold.
+#'
+#' @param x a data matrix. The columns are features.
+#' @param thres threshold of missing values. Features less than this
+#'   threshold will be kept. Value has to be between 0 and 1.
+#' @return a list of with contents: \itemize{
+#'  \item x the filtered data matrix
+#'  \item idx a logical vector of index for keeping features.
+#' }
+#' @export
+## wl-14-06-2011: Filter features based on the percentage of missing values
+## wl-17-06-2021, Thu: several version but this one is simple. Need to test
+## wl-06-11-2018, Tue: feature filter index based on missing values
+mv_filter <- function(x, thres = 0.3) {
+
+  if (!(is.matrix(x) || is.data.frame(x))) {
+    stop("\n'data' is not matrix or data frame.\n")
+  }
+
+  thres <- thres * nrow(x)
+
+  ## get number of Na, NaN and zero in each of feature/variable
+  count <- apply(x, 2, function(y) {
+    tmp <- sum(is.na(y) | is.nan(y) | (y == 0))
+  })
+  ## na.mat <- is.na(data)
+  ## count  <- apply(na.mat,2,sum)
+
+  ## index of features whose number of MVs are less than threshold
+  idx <- count <= thres
+
+  x <- x[, idx, drop = F]
+  return(list(dat = x, idx = idx))
+}
+
+## -----------------------------------------------------------------------
+#' Filtering variable based on relative standard deviation (RSD)
+#' 
+#' Filtering variable based on relative standard deviation (RSD).
+#' 
+#' @param x a data frame where columns are features.
+#' @param thres threshold of RSD. Features less than this threshold will be
+#'    kept.
+#' @return a list of with contents: \itemize{
+#'  \item x the filtered data matrix
+#'  \item idx a logical vector of index for keeping features.
+#' }
+#' @export 
+## wl-06-11-2018, Tue: feature filter index based on RSD
+rsd_filter <- function(x, thres = 20) {
+  res <- rsd(x)
+  idx <- res < thres
+  idx[is.na(idx)] <- FALSE
+
+  if (F) {
+    summary(res)
+    tmp <- hist(res, plot = F)$counts
+    hist(res,
+      xlab = "rsd", ylab = "Counts", col = "lightblue",
+      ylim = c(0, max(tmp) + 10)
+    )
+  }
+
+  x <- x[, idx, drop = F]
+  return(list(dat = x, idx = idx))
+}
+
+## ------------------------------------------------------------------------
 #' Select random sample with stratification
 #' 
 #' Select random sample with stratification from a binary group. 
@@ -270,214 +423,27 @@ feat_count_1 <- function(fs.ord, top.k = 30) {
 }
 
 ## ------------------------------------------------------------------------
-#' MS/NMR data filtering
-#'
-#' Wrapper function for filtering MS/NMR data.
-#'
-#' @param x a list of metabolomics data, including intensity data and peak
-#'   information.
-#' @param method the method for filtering.
-#' @param ... further parameters to be passed to `method`.
-#' @return  a filtered list of metabolomics data.
-#' @export
-## wl-03-06-2021, Thu: wrapper for filtering MS/NMR data
-dat_filter <- function(x, method = "iqr_filter", ...) {
-
-  method <-
-    if (is.function(method)) {
-      method
-    } else if (is.character(method)) {
-      get(method)
-    } else {
-      eval(method)
-    }
-
-  ## filtering features
-  idx <- method(x$data, ...)$idx
-  x$data <- x$data[, idx]
-  x$peak <- x$peak[idx, ]
-
-  return(x)
-}
-
-## ------------------------------------------------------------------------
-#' Filtering variable based on IQR
-#'
-#' Perform variable filtering(column-wise) based on IQR. This function is
-#' slightly modified from `varFilter` in `genefilter`.
-#'
-#' @param x a matrix or data frame.
-#' @param var.func filtering method.
-#' @param var.cutoff a numeric value for the threshold.
-#' @param filterByQuantile	a logical indicating whether `var.cutoff` is to be
-#'   a quantile of all `var.func` values or as an absolute value.
-#'
-#' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
-#'  \item idx a vector of filtering index.
-#' }
-#' @examples
-#' x <- matrix(rnorm(20*3), ncol = 3)
-#' iqr_filter(x)
-#' @export
-## wl-04-10-2016, Tue: Variable filtering(column-wise) based on IQR.
-## wl-19-01-2017, Thu: fix a bug. Use drop=F
-## wl-15-10-2020, Thu: return index as well
-iqr_filter <- function(x, var.func = "IQR", var.cutoff = 0.25, 
-                       filterByQuantile = TRUE) {
-  vars <- apply(x, 2, var.func)
-
-  if (filterByQuantile) {
-    if (0 < var.cutoff && var.cutoff < 1) {
-      quant <- quantile(vars, probs = var.cutoff)
-      selected <- !is.na(vars) & vars > quant
-    } else {
-      stop("Cutoff Quantile has to be between 0 and 1.")
-    }
-  } else {
-    selected <- !is.na(vars) & vars > var.cutoff
-  }
-  x <- x[, selected, drop = F]
-
-  return(list(dat = x, idx = selected))
-}
-
-## ------------------------------------------------------------------------
-#' Filtering variables with sd values close to zero
-#'
-#' Filter variables with sd values close to zero
-#'
-#' @param x an vector, matrix or data frame.
-#' @param na.rm	a logical value indicating whether NA values should be stripped
-#'   before the computation proceeds.
-#' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
-#'  \item idx a vector of filtering index.
-#' }
-#' @export
-## wl-04-05-2021, Tue: filtering variables with sd values close to zero
-## wl-03-06-2021, Thu: return filtering data as well
-sd_zero_filter <- function(x, na.rm = FALSE) {
-  idx <- which(apply(x, 2, sd, na.rm = na.rm) > .Machine$double.eps)
-  x <- x[, idx, drop = F]
-  return(list(dat = x, idx = idx))
-}
-
-## ------------------------------------------------------------------------
-#' Filtering variable based SD
-#'
-#' This function calculates the standard deviation for every feature across all
-#' samples and keep the features with large quantile controlled by `sig.cutoff`.
-#'
-#' @param x an vector, matrix or data frame.
-#' @param sig.cutoff a numeric value (default 0.95) for `quantile`.
-#' @param na.rm	a logical value indicating whether NA values should be stripped
-#'   before the computation proceeds.
-#' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
-#'  \item idx a vector of filtering index.
-#' }
-#' @details  
-#' - Calculate the standard deviation for every feature across all samples.
-#' - Select, say, 5-50% of the features with the highest SD. That leaves the 
-#'   features that vary a lot between groups.
-#' @export
-## wl-26-02-2013: Filtering by SD
-## wl-17-06-2021, Thu: need to test and debug
-sd_filter <- function(x, sig.cutoff = 0.95, na.rm = FALSE) {
-  sds <- apply(x, 2, sd, na.rm = na.rm)
-  cutsd <- quantile(sds, sig.cutoff)
-  idx <- sds > cutsd
-  x <- x[, idx, drop = F]
-  return(list(dat = x, idx = idx))
-}
-
-## -----------------------------------------------------------------------
-#' Filtering features based on the percentage of missing values
-#'
-#' This function calculates the percentage of missing values and keeps those
-#' features with missing values percentage less than the designed threshold.
-#'
-#' @param x a data matrix. The columns are features.
-#' @param thres threshold of missing values. Features less than this
-#'   threshold will be kept.
-#' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
-#'  \item idx a logical vector of index for keeping features.
-#' }
-#' @export
-## wl-14-06-2011: Filter features based on the percentage of missing values
-## wl-17-06-2021, Thu: several version but this one is simple. Need to test
-## wl-06-11-2018, Tue: feature filter index based on missing values
-mv_filter <- function(x, thres = 0.3) {
-
-  if (!(is.matrix(x) || is.data.frame(x))) {
-    stop("\n'data' is not matrix or data frame.\n")
-  }
-
-  thres <- thres * nrow(x)
-
-  ## get number of Na, NaN and zero in each of feature/variable
-  count <- apply(x, 2, function(y) {
-    tmp <- sum(is.na(y) | is.nan(y) | (y == 0))
-  })
-  ## na.mat <- is.na(data)
-  ## count  <- apply(na.mat,2,sum)
-
-  ## index of features whose number of MVs are less than threshold
-  idx <- count <= thres
-
-  x <- x[, idx, drop = F]
-  return(list(dat = x, idx = idx))
-}
-
-## -----------------------------------------------------------------------
-#' Filtering features based on RSD
-#' 
-#' Filtering features based on RSD.
-#' 
-#' @param x a data frame where columns are features.
-#' @param thres threshold of RSD. Features less than this threshold will be
-#'    kept.
-#' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
-#'  \item idx a logical vector of index for keeping features.
-#' }
-#' @return a logical vector of index for keeping features.
-#' @export 
-## wl-06-11-2018, Tue: feature filter index based on RSD
-rsd_filter <- function(x, thres = 20) {
-  res <- rsd(x)
-  idx <- res < thres
-  idx[is.na(idx)] <- FALSE
-
-  if (F) {
-    summary(res)
-    tmp <- hist(res, plot = F)$counts
-    hist(res,
-      xlab = "rsd", ylab = "Counts", col = "lightblue",
-      ylim = c(0, max(tmp) + 10)
-    )
-  }
-
-  x <- x[, idx, drop = F]
-  return(list(dat = x, idx = idx))
-}
-
-## ------------------------------------------------------------------------
 #' Relative standard deviation
 #'
-#' Perform Relative Standard Deviation (RSD).
+#' Caculate Relative Standard Deviation(RSD). RSD is also known as the 
+#' coefficient of variation (CV)
 #'
 #' @param x an vector, matrix or data frame.
 #' @param na.rm	a logical value indicating whether NA values should be stripped
 #'   before the computation proceeds.
-#' @return  RSD values
+#' @return  RSD value multiplied by 100.
+#' @details 
+#' Some notes: 
+#'   - The higher the CV, the greater the dispersion in the variable. 
+#'   - The CV is often presented as the given ratio multiplied by 100
+#'   - Basically CV<10 is very good, 10-20 is good, 20-30 is acceptable, 
+#'     and CV>30 is not acceptable. 
 #' @examples
 #' data(iris)
 #' rsd(iris[, 1:4])
 #' @export
 ## lwc-02-06-2011: Relative standard deviation.
+## wl-22-11-2021, Mon: 
 rsd <- function(x, na.rm = TRUE) {
   if (is.matrix(x)) {
     apply(x, 2, rsd, na.rm = na.rm)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{mv_filter}
 \alias{mv_filter}
-\title{Filtering features based on the percentage of missing values}
+\title{Filtering variable based on the percentage of missing values}
 \usage{
 mv_filter(x, thres = 0.3)
 }
@@ -10,7 +10,7 @@ mv_filter(x, thres = 0.3)
 \item{x}{a data matrix. The columns are features.}
 
 \item{thres}{threshold of missing values. Features less than this
-threshold will be kept.}
+threshold will be kept. Value has to be between 0 and 1.}
 }
 \value{
 a list of with contents: \itemize{
