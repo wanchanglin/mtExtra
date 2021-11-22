@@ -10,6 +10,7 @@
 #' @param method the method for filtering.
 #' @param ... further parameters to be passed to `method`.
 #' @return  a filtered list of metabolomics data.
+#' @family variable filters
 #' @export
 ## wl-03-06-2021, Thu: wrapper for filtering MS/NMR data
 dat_filter <- function(x, method = "var_filter", ...) {
@@ -53,6 +54,7 @@ dat_filter <- function(x, method = "var_filter", ...) {
 #' x <- matrix(rnorm(20 * 10), ncol = 10)
 #' res <- var_filter(x, method = "sd", thres = 0.25)
 #' sum(res$idx)
+#' @family variable filters
 #' @export
 ## wl-04-10-2016, Tue: Variable filtering based on IQR.
 ## wl-19-01-2017, Thu: fix a bug. Use drop=F
@@ -95,6 +97,7 @@ var_filter <- function(x, method = "IQR", na.rm = FALSE, thres = 0.25) {
 #'  \item x the filtered data matrix
 #'  \item idx a logical vector of index for keeping features.
 #' }
+#' @family variable filters
 #' @export
 ## wl-14-06-2011: Filter features based on the percentage of missing values
 ## wl-17-06-2021, Thu: several version but this one is simple. Need to test
@@ -133,6 +136,7 @@ mv_filter <- function(x, thres = 0.3) {
 #'  \item x the filtered data matrix
 #'  \item idx a logical vector of index for keeping features.
 #' }
+#' @family variable filters
 #' @export 
 ## wl-06-11-2018, Tue: feature filter index based on RSD
 rsd_filter <- function(x, thres = 20) {
@@ -1515,6 +1519,7 @@ sym2long <- function(x, tri = c("upper", "lower")) {
 #' @param x an vector.
 #' @param na.rm a logical for whether removing NAs.
 #' @return returns scaled vector
+#' @family numeric vector scalers
 #' @export 
 ## wl-09-10-2021, Sat: scale vector with standarization
 std_scale <- function(x, na.rm = TRUE) {
@@ -1523,59 +1528,40 @@ std_scale <- function(x, na.rm = TRUE) {
 }
 
 ## ------------------------------------------------------------------------
-#' Map values to a defined range
+#' Scale vector to a defined range
 #' 
-#' Scale values to a defined range.
+#' Scale vector to a defined range.
 #'
 #' @param x a numeric vector
 #' @param range a vector with two values: lower and higher.
-#' @param from.range a range values.  Default is NA.
 #' @return a scaled vector.
-#' @details. It is used mainly for controlling vertex size by a designed range
+#' @family numeric vector scalers
 #' @export 
-## wl-08-07-2015: Map values to a defined range. The previous name is 'map'.
-range_scale <- function(x, range = c(0, 1), from.range = NA) {
-  if (any(is.na(from.range))) from.range <- range(x, na.rm = TRUE)
+#' @examples 
+#' set.seed(100)
+#' x <- rnorm(10)
+#' range_scale(x, range = c(10, 20))
+## wl-08-07-2015: Map values to a defined range. 
+## wl-05-05-2016: Rescale vector between min and max.
+##   similar function `rescale` in package `network`
+range_scale <- function(x, range = c(0, 1)) {
 
-  ## check if all values are the same
-  if (!diff(from.range)) {
-    return(matrix(mean(range),
-      ncol = ncol(x), nrow = nrow(x),
-      dimnames = dimnames(x)
-    ))
+  if (range[2] <= range[1]) {
+    stop("range should be low and high")
   }
 
-  ## map to [0,1]
-  x <- (x - from.range[1])
-  x <- x / diff(from.range)
-  ## handle single values
-  if (diff(from.range) == 0) x <- 0
+  x_range <- range(x, na.rm = TRUE)
+  ## check if all values are the same
+  if (!diff(x_range)) {
+    stop("Numeric vector has the same values.")
+  }
+  
+  min <- x_range[1]
+  max <- x_range[2]
+  low  <- range[1] 
+  high <- range[2]
 
-  ## map from [0,1] to [range]
-  if (range[1] > range[2]) x <- 1 - x
-  x <- x * (abs(diff(range))) + min(range)
-
-  x[x < min(range) | x > max(range)] <- NA
-
-  return(x)
-}
-
-## ------------------------------------------------------------------------
-#' Scale vector between min and max
-#' 
-#' Scale vector between mininum and maxinum values.
-#' 
-#' @param x an vector.
-#' @param low lower value.
-#' @param high upper value.
-#' @return returns scaled vector.
-#' @export
-#' @details  From `rescale` in package `network`
-## wll-05-05-2016: Rescale vector between min and max
-mm_scale <- function(x, low, high) {
-  mi <- min(x)
-  ma <- max(x)
-  res <- ((high - low) * (x - mi)) / (ma - mi) + low
+  res <- ((high - low) * (x - min)) / (max - min) + low
   res
 }
 

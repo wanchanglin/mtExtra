@@ -20,3 +20,10 @@ a filtered list of metabolomics data.
 \description{
 Wrapper function for filtering MS/NMR data.
 }
+\seealso{
+Other variable filters: 
+\code{\link{mv_filter}()},
+\code{\link{rsd_filter}()},
+\code{\link{var_filter}()}
+}
+\concept{variable filters}

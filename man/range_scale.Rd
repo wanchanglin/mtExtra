@@ -2,23 +2,28 @@
 % Please edit documentation in R/mt_extra.R
 \name{range_scale}
 \alias{range_scale}
-\title{Map values to a defined range}
+\title{Scale vector to a defined range}
 \usage{
-range_scale(x, range = c(0, 1), from.range = NA)
+range_scale(x, range = c(0, 1))
 }
 \arguments{
 \item{x}{a numeric vector}
 
 \item{range}{a vector with two values: lower and higher.}
-
-\item{from.range}{a range values.  Default is NA.}
 }
 \value{
 a scaled vector.
 }
 \description{
-Scale values to a defined range.
+Scale vector to a defined range.
 }
-\details{
-. It is used mainly for controlling vertex size by a designed range
+\examples{
+set.seed(100)
+x <- rnorm(10)
+range_scale(x, range = c(10, 20))
 }
+\seealso{
+Other numeric vector scalers: 
+\code{\link{std_scale}()}
+}
+\concept{numeric vector scalers}

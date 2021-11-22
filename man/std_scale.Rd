@@ -17,3 +17,8 @@ returns scaled vector
 \description{
 Perform standarization of an vector.
 }
+\seealso{
+Other numeric vector scalers: 
+\code{\link{range_scale}()}
+}
+\concept{numeric vector scalers}

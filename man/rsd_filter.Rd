@@ -21,3 +21,10 @@ a list of with contents: \itemize{
 \description{
 Filtering variable based on relative standard deviation (RSD).
 }
+\seealso{
+Other variable filters: 
+\code{\link{dat_filter}()},
+\code{\link{mv_filter}()},
+\code{\link{var_filter}()}
+}
+\concept{variable filters}

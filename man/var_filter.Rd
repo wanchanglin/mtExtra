@@ -34,3 +34,10 @@ x <- matrix(rnorm(20 * 10), ncol = 10)
 res <- var_filter(x, method = "sd", thres = 0.25)
 sum(res$idx)
 }
+\seealso{
+Other variable filters: 
+\code{\link{dat_filter}()},
+\code{\link{mv_filter}()},
+\code{\link{rsd_filter}()}
+}
+\concept{variable filters}

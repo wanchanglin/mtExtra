@@ -22,3 +22,10 @@ a list of with contents: \itemize{
 This function calculates the percentage of missing values and keeps those
 features with missing values percentage less than the designed threshold.
 }
+\seealso{
+Other variable filters: 
+\code{\link{dat_filter}()},
+\code{\link{rsd_filter}()},
+\code{\link{var_filter}()}
+}
+\concept{variable filters}
