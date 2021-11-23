@@ -23,8 +23,9 @@ Filtering variable based on relative standard deviation (RSD).
 }
 \seealso{
 Other variable filters: 
-\code{\link{dat_filter}()},
+\code{\link{blank_filter}()},
 \code{\link{mv_filter}()},
+\code{\link{qc_filter}()},
 \code{\link{var_filter}()}
 }
 \concept{variable filters}

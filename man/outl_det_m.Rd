@@ -29,5 +29,10 @@ x <- rbind(x, y)
 outl <- outl_det_m(x, method = "mcd", conf.level = 0.95)
 }
 \seealso{
-\code{cov.rob}
+\code{\link[=cov.rob]{cov.rob()}} for "Resistant Estimation of Multivariate Location
+and Scatter"
+
+Other outlier detectors: 
+\code{\link{outl_det_u}()}
 }
+\concept{outlier detectors}

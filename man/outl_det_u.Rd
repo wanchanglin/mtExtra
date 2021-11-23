@@ -37,3 +37,8 @@ outl_det_u(x, "boxplot")
 Wilcox R R, Fundamentals of Modern Statistical Methods: Substantially
 Improving Power and Accuracy, Springer 2010 (2nd edition), pages 31-35.
 }
+\seealso{
+Other outlier detectors: 
+\code{\link{outl_det_m}()}
+}
+\concept{outlier detectors}

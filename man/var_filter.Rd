@@ -36,8 +36,9 @@ sum(res$idx)
 }
 \seealso{
 Other variable filters: 
-\code{\link{dat_filter}()},
+\code{\link{blank_filter}()},
 \code{\link{mv_filter}()},
+\code{\link{qc_filter}()},
 \code{\link{rsd_filter}()}
 }
 \concept{variable filters}

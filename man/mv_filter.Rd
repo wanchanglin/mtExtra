@@ -24,7 +24,8 @@ features with missing values percentage less than the designed threshold.
 }
 \seealso{
 Other variable filters: 
-\code{\link{dat_filter}()},
+\code{\link{blank_filter}()},
+\code{\link{qc_filter}()},
 \code{\link{rsd_filter}()},
 \code{\link{var_filter}()}
 }

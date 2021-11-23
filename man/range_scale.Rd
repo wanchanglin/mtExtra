@@ -22,8 +22,3 @@ set.seed(100)
 x <- rnorm(10)
 range_scale(x, range = c(10, 20))
 }
-\seealso{
-Other numeric vector scalers: 
-\code{\link{std_scale}()}
-}
-\concept{numeric vector scalers}

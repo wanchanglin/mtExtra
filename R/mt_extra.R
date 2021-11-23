@@ -1,33 +1,180 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
 ## ------------------------------------------------------------------------
-#' MS/NMR data filtering
+#' Transform data
+#' 
+#' Perform data set transformation
 #'
-#' Wrapper function for filtering MS/NMR data.
-#'
-#' @param x a list of metabolomics data, including intensity data and peak
-#'   information.
-#' @param method the method for filtering.
-#' @param ... further parameters to be passed to `method`.
-#' @return  a filtered list of metabolomics data.
+#' @param x a matrix, data frame or vector.
+#' @param method transformation method, including: "center", "auto", "range",
+#'   "pareto", "vast", "level", "log", "log10", "sqrt" and "asinh". 
+#' @param add a shift value for log transformation.
+#' @return transformed data
+#' @references 
+#'  Berg, R., Hoefsloot, H., Westerhuis, J., Smilde, A. and Werf, M. (2006),
+#'  Centering, scaling, and transformations: improving the biological
+#'  information content of metabolomics data, \emph{BMC Genomics}, 7:142
+#' @name trans
+#' @examples
+#'  data(iris)
+#'  ## transform an vector
+#'  vec <- iris[, 1]
+#'  dat_trans(vec, method = "auto")
+#'  vec_trans(vec, method = "auto")
+#'  ## transform a data frame
+#'  mat <- iris[, 1:4]
+#'  dat_trans(mat, method = "log")
+#'  ## transform data frame under condition
+#'  plyr::ddply(iris, ("Species"), function(x, method) {
+#'    dat_trans(x[, 1:4], method = method)
+#'  }, method = "range")
+NULL
+
+## ------------------------------------------------------------------------
+#' @export 
+#' @rdname trans 
+#' @order 1
+## wll-29-07-2015: Transform a data matrix
+## Note: The programming structure is from ststs's 'sd' function.
+dat_trans <- function(x, method = "auto", add = 1) {
+  if (is.matrix(x)) {
+    res <- apply(x, 2, vec_trans, method = method, add = add)
+  } else if (is.vector(x)) {
+    res <- vec_trans(x, method = method, add = add)
+  } else if (is.data.frame(x)) {
+    res <- sapply(x, vec_trans, method = method, add = add)
+  } else {
+    res <- vec_trans(as.vector(x), method = method, add = add)
+  }
+
+  return(res)
+}
+
+## ------------------------------------------------------------------------
+#' @export 
+#' @rdname trans
+#' @order 2
+## wll-29-07-2015: transform an vector
+vec_trans <- function(x, method = "auto", add = 1) {
+  method <- match.arg(method, c(
+    "center", "auto", "range", "pareto", "vast",
+    "level", "log", "log10", "sqrt", "asinh"
+  ))
+
+  ## basic functions
+  me <- function(x) mean(x, na.rm = T)
+  se <- function(x) sd(x, na.rm = T)
+  mx <- function(x) max(x, na.rm = T)
+  mn <- function(x) min(x, na.rm = T)
+  ## sm  <- function(x) sum(x,na.rm=T)
+
+  res <- switch(method,
+    "center"  = (x - me(x)),
+    "auto"    = (x - me(x)) / se(x),
+    "range"   = (x - me(x)) / (mx(x) - mn(x)),
+    "pareto"  = (x - me(x)) / sqrt(se(x)),
+    "vast"    = (x - me(x)) * me(x) / se(x)^2,
+    "level"   = (x - me(x)) / me(x),
+    "log"     = log(x + add),
+    "log10"   = log10(x + add),
+    "sqrt"    = sqrt(x),
+    "asinh"   = asinh(x)
+  )
+  return(res)
+}
+
+## ----------------------------------------------------------------------- 
+#' MS/NMR data filtering based on RSD of "qc" data
+#' 
+#' MS/NMR data filtering based on RSD of "qc" data
+#' 
+#' @param x a data matrix.
+#' @param y a character string with contents of "sample", "qc" and "blank".
+#' @param thres_rsd threshold of RSD on QC. Features less than this
+#'   threshold will be kept.
+#' @param f_mv  a flag indicating whether or not to performance missing value
+#'   filtering on either "sample" or "qc" data.
+#' @param f_mv_qc_sam a flag for filtering using percentage of missing values
+#'  on "qc" or "sample". TRUE is for "qc".
+#' @param thres_mv threshold of missing values. Features less than this
+#'  threshold will be kept.
+#' @return a filtered data.
+#' @details This filter process takes two steps. First, the missing values 
+#'  filterting is performed on either "qc" or "sample". Then RSD-based 
+#'  filtering is applied to "qc" data.
 #' @family variable filters
-#' @export
-## wl-03-06-2021, Thu: wrapper for filtering MS/NMR data
-dat_filter <- function(x, method = "var_filter", ...) {
-
-  method <-
-    if (is.function(method)) {
-      method
-    } else if (is.character(method)) {
-      get(method)
+#' @export 
+## wl-06-11-2018, Tue: Feature filtering based on QC's RSD
+## wl-14-11-2018, Wed: add flag to missing value filtering
+qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
+                      f_mv_qc_sam = FALSE, thres_mv = 0.30) {
+  ## 1) filtering based on missing values: sample or qc.
+  if (f_mv) {
+    if (f_mv_qc_sam) {
+      tmp <- y %in% "qc" 
     } else {
-      eval(method)
+      tmp <- y %in% "sample" 
     }
+    idx <- mv_filter(x[tmp, , drop = FALSE], thres = thres_mv)$idx
+    x <- x[, idx, drop = FALSE]
+  }
 
-  ## filtering features
-  idx <- method(x$data, ...)$idx
-  x$data <- x$data[, idx]
-  x$peak <- x$peak[idx, ]
+  ## 2) filtering based rsd of "qc"
+  tmp <- y %in% "qc" 
+  idx <- rsd_filter(x[tmp, , drop = FALSE], thres = thres_rsd)$idx
+  x <- x[, idx, drop = FALSE]
+
+  return(x)
+}
+
+## ----------------------------------------------------------------------- 
+#' MS/NMR data filtering based on "blank" data
+#' 
+#' MS/NMR data filtering based on "blank" data
+#' 
+#' @param x a data matrix.
+#' @param y a character string with contents of "sample", "qc" and "blank".
+#' @param method method for stats. Support "mean", "median" and "max".
+#' @param factor multiplier for blank stats
+#' @param f_mv a flag indicating whether perform missing value filtering on
+#'   "sample" data.
+#' @param thres_mv threshold of missing values on QC. Features less than this
+#'    threshold will be kept.
+#' @return  a filtered data. 
+#' @details This function provides an option to perform missing value filtering
+#'   on "sample" data. 
+#' @family variable filters
+#' @export 
+## wl-06-11-2018, Tue: Feature filtering based on blank
+## wl-14-11-2018, Wed: change order of missing value filtering
+blank_filter <- function(x, y, method = c("mean", "median", "max"),
+                         factor = 1, f_mv = TRUE, thres_mv = 0.30) {
+  method <- match.arg(method)
+  idx_sample <- y %in% "sample" 
+  idx_blank  <- y %in% "blank"
+
+  ## 1) filtering based on missing values of "sample".
+  if (f_mv) {
+    idx <- mv_filter(x[idx_sample, , drop = FALSE], thres = thres_mv)$idx
+    x <- x[, idx, drop = FALSE]
+  }
+
+  ## 2) filtering based on characteristics of blank intensities: mean, median
+  ##    or max
+  stats.blank <- apply(x[idx_blank, , drop = FALSE], 2, method, na.rm = TRUE)
+  stats.blank <- factor * stats.blank
+  stats.sample <- apply(x[idx_sample, , drop = FALSE], 2, method, na.rm = TRUE)
+
+  ## keep features with sample stats are larger than blank
+  idx <- stats.sample >= stats.blank
+  idx[is.na(idx)] <- FALSE
+  ## Also keep features whose values are NA in blank
+  idx.1 <- is.na(stats.blank)
+  ## take union
+  idx <- idx | idx.1
+  
+  ## update data set
+  x <- x[, idx, drop = FALSE]
 
   return(x)
 }
@@ -144,14 +291,12 @@ rsd_filter <- function(x, thres = 20) {
   idx <- res < thres
   idx[is.na(idx)] <- FALSE
 
-  if (F) {
-    summary(res)
-    tmp <- hist(res, plot = F)$counts
-    hist(res,
-      xlab = "rsd", ylab = "Counts", col = "lightblue",
-      ylim = c(0, max(tmp) + 10)
-    )
-  }
+  ## summary(res)
+  ## tmp <- hist(res, plot = F)$counts
+  ## hist(res,
+  ##   xlab = "rsd", ylab = "Counts", col = "lightblue",
+  ##   ylim = c(0, max(tmp) + 10)
+  ## )
 
   x <- x[, idx, drop = F]
   return(list(dat = x, idx = idx))
@@ -273,6 +418,7 @@ samp_sub <- function(x, k, n = 10) {
 #'    by 0.6745.
 #'  - `boxplot`: either smaller than the 1st quartile minus 1.5 times of IQR, 
 #'     or larger than the 3rd quartile plus 1.5 times of IQR.
+#' @family  outlier detectors
 #' @examples 
 #' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
 #' outl_det_u(x, "boxplot")
@@ -309,7 +455,9 @@ outl_det_u <- function(x, method = c("boxplot", "median", "mean")) {
 #' @param conf.level a confidential level.
 #' @return retuns a logical vector.
 #' @importFrom MASS cov.rob
-#' @seealso `cov.rob`
+#' @seealso [cov.rob()] for "Resistant Estimation of Multivariate Location
+#'  and Scatter"
+#' @family  outlier detectors
 #' @export 
 #' @examples  
 #' set.seed(134)
@@ -1114,18 +1262,24 @@ heat_dend <- function(mat, x.rot = 60,
 ## -----------------------------------------------------------------------
 #' Vector summary
 #' 
-#' Calculate the statistical summary of a vector, including confidential
-#' interval.
+#' Calculate the statistical summary of a vector.
 #' 
 #' @param x a numveric vector.
 #' @param na.rm remove NA or not.
-#' @param conf.interval a numeric value for confidential interval.
-#' @return retuns a vector of summary.
-#' @details Used for error bar plotting. Modify from
+#' @param conf.interval a numeric value for confidenice interval.
+#' @return 
+#'   retuns a vector of summary consisting:
+#'   - number of vector length
+#'   - vector mean
+#'   - vector standard derivation   
+#'   - standard error of mean
+#'   - confidence interval
+#' @details Can be used for error bar plotting. Modify from
 #'   https://bit.ly/3onsqot
+#' @family vector stats functions
 #' @export 
 ## wl-18-05-2021, Tue: stats of a vector.
-vec_ci <- function(x, na.rm = FALSE, conf.interval = .95) {
+vec_stats <- function(x, na.rm = FALSE, conf.interval = .95) {
 
   ## Handle NA's: if na.rm==T, don't count them
   length2 <- function(x, na.rm = FALSE) {
@@ -1134,7 +1288,7 @@ vec_ci <- function(x, na.rm = FALSE, conf.interval = .95) {
   n    <- length2(x, na.rm = na.rm)
   mean <- mean(x, na.rm = na.rm)
   sd   <- sd(x, na.rm = na.rm)
-  se   <- sd / sqrt(n)                 ## standard error of the mean
+  se   <- sd / sqrt(n)                 ## standard error of mean
 
   ## Confidence interval multiplier for standard error
   ## Calculate t-statistic for confidence interval:
@@ -1146,28 +1300,49 @@ vec_ci <- function(x, na.rm = FALSE, conf.interval = .95) {
 }
 
 ## ------------------------------------------------------------------------
-#' Vector normalisation
-#'
-#' Perform normalisation on a numeric vector.
-#'
-#' @param x a vector
-#' @param method the normalisation method to be used.
-#' @param scale a logical to scale `x` or not.
-#' @return returns a normalised vector.
-#' @export
+#' Vector statistics for error bar plotting
+#' 
+#' Calculate vector's standard derivation, standard error of mean and 
+#' confidencd interval.
+#' 
+#' @param x an vector.
+#' @param bar a chracter string, supporting "SD", "SE" and "CI".
+#' @return retuns an vector including lower, center and upper values.
 #' @examples
-#' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
-#' vec_norm(x, method = "median", scale = TRUE)
-## wl-22-09-2020, Tue: vector normalisation
-vec_norm <- function(x, method = "median", scale = TRUE) {
-  method <- match.arg(method, c("median", "mean"))
-  method <- get(method)
-  center <- method(x, na.rm = T)
-  x <- x - center
-  if (scale) {
-    x <- x / sd(x, na.rm = T)
+#' vec_segment(iris[,1])
+#' mat <- reshape2::melt(iris)
+#' plyr::ddply(mat, plyr::.(Species,variable), function(x,bar) {
+#'   vec_segment(x$value, bar = bar)
+#' }, bar = "SD")
+#' @family vector stats functions
+#' @importFrom stats t.test
+#' @export 
+## lwc-13-05-2013: Calculate error bar statistics
+## lwc-08-01-2014: add some examples.
+vec_segment <- function(x, bar = c("SD", "SE", "CI")) {
+  bar <- match.arg(bar)
+
+  centre <- mean(x, na.rm = T)
+
+  if (bar == "SD") {
+    stderr <- sd(x, na.rm = T) # Standard derivation (SD)
+    lower <- centre - stderr
+    upper <- centre + stderr
+  } else if (bar == "SE") {   # Standard error(SE) of mean
+    stderr <- sd(x, na.rm = T) / sqrt(sum(!is.na(x)))
+    ## stderr <- sqrt(var(x, na.rm = T)/length(x[complete.cases(x)]))
+    lower <- centre - stderr
+    upper <- centre + stderr
+  } else if (bar == "CI") {   # Confidence interval (CI), here 95%.
+    conf <- t.test(x)$conf.int
+    lower <- conf[1]
+    upper <- conf[2]
+  } else {
+    stop("'method' invalid")
   }
-  return(x)
+
+  res <- c(lower = lower, centre = centre, upper = upper)
+  return(res)
 }
 
 ## --------------------------------------------------------------------------
@@ -1512,22 +1687,6 @@ sym2long <- function(x, tri = c("upper", "lower")) {
 }
 
 ## ------------------------------------------------------------------------
-#' Scale vector with standarization
-#' 
-#' Perform standarization of an vector.
-#' 
-#' @param x an vector.
-#' @param na.rm a logical for whether removing NAs.
-#' @return returns scaled vector
-#' @family numeric vector scalers
-#' @export 
-## wl-09-10-2021, Sat: scale vector with standarization
-std_scale <- function(x, na.rm = TRUE) {
-  res <- (x - mean(x, na.rm = na.rm)) / sd(x, na.rm = na.rm)
-  return(res)
-}
-
-## ------------------------------------------------------------------------
 #' Scale vector to a defined range
 #' 
 #' Scale vector to a defined range.
@@ -1535,7 +1694,6 @@ std_scale <- function(x, na.rm = TRUE) {
 #' @param x a numeric vector
 #' @param range a vector with two values: lower and higher.
 #' @return a scaled vector.
-#' @family numeric vector scalers
 #' @export 
 #' @examples 
 #' set.seed(100)
@@ -2126,16 +2284,14 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 }
 
 ## ------------------------------------------------------------------------
-#' @title Extra functions for metabolomics data analysis
-#' @name mtExtra
-#'
-#' @description `mtExtra` has more functions for metabolomics data analysis.
-#'   It should use ' with R package \code{mt}.
+#' @description `mtExtra` provides some general functions and more specific 
+#'  functions to R package `mt` for metabolomics data analysis.
 #'
 #' @section Main functions:
 #' The main mtExtra provides more functions for metabolomics data analysis.
-#' These functions are statistical analysis and plot methods with `ggplot2` and
-#' `lattice`. It uses `tidyverse` as well as `reshape2` and `plyr` packages.
+#' These functions are statistical analysis and plot methods with `ggplot2`
+#' and `lattice`. It uses `tidyverse` as well as `reshape2` and `plyr` 
+#' packages.
 #'
 #' @section Package context:
 #' This package follows the principles of the "tidyverse" as mush as possible.
@@ -2152,53 +2308,5 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #'   cutree dist hclust line order.dendrogram p.adjust pf pt qt
 #' @importFrom utils data head
 #' @importFrom rlang .data
-#' @docType package
-#' @aliases mtExtra mtExtra-package
-NULL
-
-##  1) feat_count
-##  2) feat_count_1
-##  3) dat_filter
-##  4) iqr_filter
-##  5) sd_zero_filter
-##  6) sd_filter
-##  7) mv_filter
-##  8) rsd
-##  9) plot_aam
-## 10) plot_pval
-## 11) cor_hcl
-## 12) upd_data
-## 13) cor_net
-## 14) bi_cor_net
-## 15) dat_cor
-## 16) pcor_dat
-## 17) gg_heat_dend
-## 18) heat_dend
-## 19) vec_ci
-## 20) vec_norm
-## 21) net_graph
-## 22) graph_stats
-## 23) vertex_stats
-## 24) cor_tab
-## 25) sym2long
-## 26) std_scale
-## 27) mm_scale
-## 28) str_trim
-## 29) non_digit
-## 30) non_zero
-## 31) is_zero
-## 32) df_na_idx
-## 33) rbind_df
-## 34) mat2df
-## 35) df_t
-## 36) dim_mat
-## 37) arrange_row
-## 38) vec2dat
-## 39) ps_tiff
-## 40) dendro_data_k
-## 41) plot_ggdendro
-## 42) chunk
-## 43) chunk_1
-## 44) chunk_2
-## 45) chunk_3
-## 46) pca_plot
+#' @keywords internal
+"_PACKAGE"
