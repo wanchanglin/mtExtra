@@ -593,6 +593,25 @@ feat_count_1 <- function(fs.ord, top.k = 30) {
 #' @examples
 #' data(iris)
 #' rsd(iris[, 1:4])
+#' 
+#' ## group rsd
+#' \dontrun{
+#' df_summ <- function(dat, method = mean, ...) {
+#'   dat %>% select(where(is.numeric)) %>% map_dfr(method) 
+#' }
+#' 
+#' val <- iris %>% 
+#'   group_by(Species) %>% 
+#' 	group_modify(~ df_summ(., method = rsd)) %>%
+#'   pivot_longer(cols = !Species) %>% filter(!is.na(value))
+#' 
+#' ggplot(val, aes(x = value)) +
+#'     geom_histogram(colour = "black", fill = "white") +
+#'     facet_grid(Species ~ .)
+#' ggplot(val, aes(x = Species, y = value)) + geom_boxplot()
+#' 
+#' ## The plotting of missing value is similiar like this.
+#' }
 #' @export
 ## lwc-02-06-2011: Relative standard deviation.
 ## wl-22-11-2021, Mon: 
@@ -605,6 +624,29 @@ rsd <- function(x, na.rm = TRUE) {
     sapply(x, rsd, na.rm = na.rm)
   } else {
     100 * sd(as.vector(x), na.rm = na.rm) / mean(as.vector(x), na.rm = na.rm)
+  }
+}
+
+## ------------------------------------------------------------------------
+#' Missing value percentage
+#' 
+#' Calculate missing value percentage.
+#'
+#' @param x an vector, matrix or data frame.
+#' @return missing value percentage.
+#' @export 
+## wl-24-11-2021, Wed: extract from 'mv.stats' in 'mt'. 
+##   For plot of rsd and mv using tidyverse, see 'debug_filter_1.R' in 
+##   'r_data/cam/dismp'
+mv_perc <- function(x) {
+  if (is.matrix(x)) {
+    apply(x, 2, mv_perc)
+  } else if (is.vector(x)) {
+    round(sum(is.na(x) | is.nan(x)) / length(x), digits = 3)
+  } else if (is.data.frame(x)) {
+    sapply(x, mv_perc)
+  } else {
+    round(sum(is.na(as.vector(x)) | is.nan(as.vector(x))) / length(as.vector(x)), digits = 3)
   }
 }
 

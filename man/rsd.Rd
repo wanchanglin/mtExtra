@@ -31,4 +31,23 @@ and CV>30 is not acceptable.
 \examples{
 data(iris)
 rsd(iris[, 1:4])
+
+## group rsd
+\dontrun{
+df_summ <- function(dat, method = mean, ...) {
+  dat \%>\% select(where(is.numeric)) \%>\% map_dfr(method) 
+}
+
+val <- iris \%>\% 
+  group_by(Species) \%>\% 
+	group_modify(~ df_summ(., method = rsd)) \%>\%
+  pivot_longer(cols = !Species) \%>\% filter(!is.na(value))
+
+ggplot(val, aes(x = value)) +
+    geom_histogram(colour = "black", fill = "white") +
+    facet_grid(Species ~ .)
+ggplot(val, aes(x = Species, y = value)) + geom_boxplot()
+
+## The plotting of missing value is similiar like this.
+}
 }
