@@ -17,4 +17,5 @@ LazyLoad: yes
 LazyData: yes
 ZipData: No
 Imports: rlang, MASS, reshape2, ggplot2, lattice, latticeExtra, plyr, dplyr, 
-  tidyr, purrr, tibble, ellipse, ggdendro, igraph, ppcor, cowplot, ggraph
+  tidyr, purrr, tibble, ellipse, ggdendro, igraph, ppcor, cowplot, ggraph, 
+	locfdr
