@@ -193,7 +193,7 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #'  `quantile`. Features whose variability value is large than this threshold
 #'  will be kept.
 #' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
+#'  \item dat the filtered data matrix
 #'  \item idx a vector of filtering index.
 #' }
 #' @examples
@@ -241,7 +241,7 @@ var_filter <- function(x, method = "IQR", na.rm = FALSE, thres = 0.25) {
 #' @param thres threshold of missing values. Features less than this
 #'   threshold will be kept. Value has to be between 0 and 1.
 #' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
+#'  \item dat the filtered data matrix
 #'  \item idx a logical vector of index for keeping features.
 #' }
 #' @family variable filters
@@ -280,7 +280,7 @@ mv_filter <- function(x, thres = 0.3) {
 #' @param thres threshold of RSD. Features less than this threshold will be
 #'    kept.
 #' @return a list of with contents: \itemize{
-#'  \item x the filtered data matrix
+#'  \item dat the filtered data matrix
 #'  \item idx a logical vector of index for keeping features.
 #' }
 #' @family variable filters
