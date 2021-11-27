@@ -29,13 +29,29 @@ Filter data based on local false discovery rate. This function uses \code{z.2}
 of \code{locfdr}.
 }
 \details{
-From R package \code{locfdr} vignette:
+\itemize{
+\item Keep the variables which have at least one significant element. The
+significant element is defined as larger than the lower of threshold or
+less than the upper of theshold.
+\item Threshold can be given by user or be estimated by \code{locfdr}, i.e. the
+returned \code{z.2} as a threshold. It is not gurranted that \code{locfdr} returns
+\code{z.2}. If not, user must provide this value.
+\item From R package \code{locfdr} vignette:
 \code{z.2} is the interval along the zz-axis outside of which \code{fdr(z) < 0.2},
 the locations of the yellow triangles in the histogram plot. If no
 elements of \code{zz} on the left or right satisfy the criterion, the
 corresponding element of z.2 is NA, and the corresponding triangle does
 not appear.
 }
+}
 \seealso{
 \code{\link[=locfdr]{locfdr()}}
+
+Other variable filters: 
+\code{\link{blank_filter}()},
+\code{\link{mv_filter}()},
+\code{\link{qc_filter}()},
+\code{\link{rsd_filter}()},
+\code{\link{var_filter}()}
 }
+\concept{variable filters}

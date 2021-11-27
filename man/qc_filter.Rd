@@ -44,6 +44,7 @@ filtering is applied to "qc" data.
 \seealso{
 Other variable filters: 
 \code{\link{blank_filter}()},
+\code{\link{locfdr_filter}()},
 \code{\link{mv_filter}()},
 \code{\link{rsd_filter}()},
 \code{\link{var_filter}()}

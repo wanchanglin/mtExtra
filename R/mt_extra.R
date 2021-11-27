@@ -1,114 +1,6 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
 ## ------------------------------------------------------------------------
-#' Filtering variable based on local false discovery rate
-#' 
-#' Filter data based on local false discovery rate. This function uses `z.2`
-#' of `locfdr`.
-#' 
-#' @param x a data metirx
-#' @param plot an interger for plotting. 0 gives no plots. 1 gives single 
-#'   plot showing the histogram of zz and fitted densities f and p0*f0.
-#' @param thres a user defined threshold for filtering. The default is NULL, 
-#' which use local FDR as threshold for filtering.
-#' @param ... other parameters to be passed to `locfdr`. 
-#' @return a list of with contents: \itemize{
-#'  \item dat the filtered data matrix.
-#'  \item idx a vector of filtering index.
-#'  \item thres threshold used for filtering.
-#' }
-#' 
-#' @details 
-#' From R package `locfdr` vignette: 
-#'   `z.2` is the interval along the zz-axis outside of which `fdr(z) < 0.2`,
-#'   the locations of the yellow triangles in the histogram plot. If no
-#'   elements of `zz` on the left or right satisfy the criterion, the
-#'   corresponding element of z.2 is NA, and the corresponding triangle does
-#'   not appear.
-#' @seealso [locfdr()] 
-#' @importFrom locfdr locfdr
-#' @export 
-## wl-09-12-2020, Wed: Filter data based on z.2 of 'locfdr'
-## wl-16-12-2020, Wed: add fixed threshold in case failurer of 'locfdr'
-## wl-26-11-2021, Fri: Should check potential multiple arguments for `plot`
-##  and `nulltype`.
-locfdr_filter <- function(x, plot = 1, thres = NULL, ...) {
-  if (!is.null(thres)) {
-    if (length(thres) == 1 && thres <= 0) {
-      stop("Single threshold value must be larger than zero")
-    }
-    if ((length(thres) > 1) && (thres[1] >= thres[2])) {
-      stop("The threshold range should be [lower, upper]")
-    }
-    if (length(thres) == 1) {
-      thres <- c(-thres, thres)
-    } else {
-      thres <- thres[1:2]
-    }
-  } else {
-    vec <- as.vector(as.matrix(x))
-    vec <- vec[!is.na(vec)]
-
-    fdr <- locfdr::locfdr(vec, nulltype = 1, plot = plot, ...)
-    thres <- fdr$z.2
-  }
-
-  ## Filtering function: Keep vector having at least one significant elements.
-  sig_cut <- function(x, lower, upper) {
-    if (sum(x <= lower) > 0 | sum(x >= upper) > 0) {
-      return(TRUE)
-    } else {
-      return(FALSE)
-    }
-  }
-
-  ## filter data
-  idx <- apply(x, 2, sig_cut, thres[1], thres[2])
-  x <- x[, idx, drop = F]
-
-  res <- list(dat = x, idx = idx, thres = thres)
-  return(res)
-}
-
-## ------------------------------------------------------------------------
-#' Symbilise data set
-#' 
-#' Symbilise data values as (-1, 0, 1) based on a range
-#' 
-#' @param x an vector or data matrix.
-#' @param thres an vector with lower and higher values.
-#' @return a symbolic data set.
-#' @export 
-## wl-10-12-2020, Thu: convert data with (-1, 0, 1) based on threshold.  
-dat_symb <- function(x, thres) {
-  
-  if (length(thres) == 1 && thres <= 0) {
-    stop("Single threshold value must be larger than zero")
-  }
-  if ((length(thres) > 1) && (thres[1] >= thres[2])) {
-    stop("The threshold range should be [lower, upper]")
-  }
-  if (length(thres) == 1) {
-    thres <- c(-thres, thres)
-  } else {
-    thres <- thres[1:2]
-  }
-
-  ## wl-26-11-2021, Fri: same resukts but the second one is simple and clear
-  if (F) {
-    data_l <- -1 * (x <= thres[1]) # left tail
-    data_u <- 1 * (x >= thres[2])  # right tail
-    x <- data_l + data_u
-  } else {
-    x[(x > thres[1]) & (x < thres[2])] <- 0
-    x[x >= thres[2]] <- 1
-    x[x <= thres[1]] <- -1
-  }
-
-  return(x)
-}
-
-## ------------------------------------------------------------------------
 #' Transform data
 #' 
 #' Perform data set transformation
@@ -283,6 +175,125 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
   
   ## update data set
   x <- x[, idx, drop = FALSE]
+
+  return(x)
+}
+
+## ------------------------------------------------------------------------
+#' Filtering variable based on local false discovery rate
+#' 
+#' Filter data based on local false discovery rate. This function uses `z.2`
+#' of `locfdr`.
+#' 
+#' @param x a data metirx
+#' @param plot an interger for plotting. 0 gives no plots. 1 gives single 
+#'   plot showing the histogram of zz and fitted densities f and p0*f0.
+#' @param thres a user defined threshold for filtering. The default is NULL, 
+#' which use local FDR as threshold for filtering.
+#' @param ... other parameters to be passed to `locfdr`. 
+#' @return a list of with contents: \itemize{
+#'  \item dat the filtered data matrix.
+#'  \item idx a vector of filtering index.
+#'  \item thres threshold used for filtering.
+#' }
+#' 
+#' @details 
+#' - Keep the variables which have at least one significant element. The 
+#'   significant element is defined as larger than the lower of threshold or
+#'   less than the upper of theshold. 
+#' - Threshold can be given by user or be estimated by `locfdr`, i.e. the 
+#'   returned `z.2` as a threshold. It is not gurranted that `locfdr` returns
+#'   `z.2`. If not, user must provide this value.
+#' - From R package `locfdr` vignette: 
+#'   `z.2` is the interval along the zz-axis outside of which `fdr(z) < 0.2`,
+#'   the locations of the yellow triangles in the histogram plot. If no
+#'   elements of `zz` on the left or right satisfy the criterion, the
+#'   corresponding element of z.2 is NA, and the corresponding triangle does
+#'   not appear.
+#'  
+#' @seealso [locfdr()] 
+#' @family variable filters
+#' @importFrom locfdr locfdr
+#' @export 
+## wl-09-12-2020, Wed: Filter data based on z.2 of 'locfdr'
+## wl-16-12-2020, Wed: add fixed threshold in case failurer of 'locfdr'
+## wl-26-11-2021, Fri: Should check potential multiple arguments for `plot`
+##  and `nulltype`.
+locfdr_filter <- function(x, plot = 1, thres = NULL, ...) {
+  if (!is.null(thres)) {
+    if (length(thres) == 1 && thres <= 0) {
+      stop("Single threshold value must be larger than zero")
+    }
+    if ((length(thres) > 1) && (thres[1] >= thres[2])) {
+      stop("The threshold range should be [lower, upper]")
+    }
+    if (length(thres) == 1) {
+      thres <- c(-thres, thres)
+    } else {
+      thres <- thres[1:2]
+    }
+  } else {
+    vec <- as.vector(as.matrix(x))
+    vec <- vec[!is.na(vec)]
+
+    fdr <- locfdr::locfdr(vec, nulltype = 1, plot = plot, ...)
+    thres <- fdr$z.2
+  }
+
+  ## Filtering function: Keep vector having at least one significant elements.
+  sig_cut <- function(x, lower, upper) {
+    if (sum(x <= lower) > 0 | sum(x >= upper) > 0) {
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+
+  ## filter data
+  idx <- apply(x, 2, sig_cut, thres[1], thres[2])
+  x <- x[, idx, drop = F]
+
+  res <- list(dat = x, idx = idx, thres = thres)
+  return(res)
+}
+
+## ------------------------------------------------------------------------
+#' Symbilise data set
+#' 
+#' Symbilise data values as (-1, 0, 1) based on a range
+#' 
+#' @param x an vector or data matrix.
+#' @param thres an vector with lower and higher values.
+#' @return a symbolic data set.
+#' @details 
+#'   `thres` can be estimated by [locfdr_filter()]. 
+#' @seealso [locfdr_filter()] and [locfdr()] for `z.2`. 
+#' @export 
+## wl-10-12-2020, Thu: convert data with (-1, 0, 1) based on threshold.  
+dat_symb <- function(x, thres) {
+  
+  if (length(thres) == 1 && thres <= 0) {
+    stop("Single threshold value must be larger than zero")
+  }
+  if ((length(thres) > 1) && (thres[1] >= thres[2])) {
+    stop("The threshold range should be [lower, upper]")
+  }
+  if (length(thres) == 1) {
+    thres <- c(-thres, thres)
+  } else {
+    thres <- thres[1:2]
+  }
+
+  ## wl-26-11-2021, Fri: same resukts but the second one is simple and clear
+  if (F) {
+    data_l <- -1 * (x <= thres[1]) # left tail
+    data_u <- 1 * (x >= thres[2])  # right tail
+    x <- data_l + data_u
+  } else {
+    x[(x > thres[1]) & (x < thres[2])] <- 0
+    x[x >= thres[2]] <- 1
+    x[x <= thres[1]] <- -1
+  }
 
   return(x)
 }

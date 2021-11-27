@@ -14,7 +14,7 @@ kept.}
 }
 \value{
 a list of with contents: \itemize{
-\item x the filtered data matrix
+\item dat the filtered data matrix
 \item idx a logical vector of index for keeping features.
 }
 }
@@ -24,6 +24,7 @@ Filtering variable based on relative standard deviation (RSD).
 \seealso{
 Other variable filters: 
 \code{\link{blank_filter}()},
+\code{\link{locfdr_filter}()},
 \code{\link{mv_filter}()},
 \code{\link{qc_filter}()},
 \code{\link{var_filter}()}

@@ -17,3 +17,9 @@ a symbolic data set.
 \description{
 Symbilise data values as (-1, 0, 1) based on a range
 }
+\details{
+\code{thres} can be estimated by \code{\link[=locfdr_filter]{locfdr_filter()}}.
+}
+\seealso{
+\code{\link[=locfdr_filter]{locfdr_filter()}} and \code{\link[=locfdr]{locfdr()}} for \code{z.2}.
+}

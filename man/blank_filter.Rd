@@ -40,6 +40,7 @@ on "sample" data.
 }
 \seealso{
 Other variable filters: 
+\code{\link{locfdr_filter}()},
 \code{\link{mv_filter}()},
 \code{\link{qc_filter}()},
 \code{\link{rsd_filter}()},
