@@ -1,5 +1,33 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
+
+## ------------------------------------------------------------------------
+#' Data matrix summary
+#' 
+#' Summarise a data matrix.
+#' 
+#' @param x a matrix-like object.
+#' @param method summary method for an vector.
+#' @param ... further parameters for `method`.
+#' @return retuns a summarised table.
+#' @export 
+#' @examples 
+#' \dontrun{
+#' iris %>% group_by(Species) %>% group_modify(~ df_summ(., method = mean))
+#' iris %>% group_by(Species) %>% group_modify(~ df_summ(., method = vec_stats))
+#' iris %>% group_by(Species) %>% do(df_summ(., method = vec_segment))
+#' iris %>% df_summ(method = sd)
+#' }
+## wl-20-10-2021, Wed: Data matrix summary using tidyverse
+## wl-24-11-2021, Wed: use '.id' for rownames
+## wl-29-11-2021, Mon: 'method' returns a vector or data matrix. 
+dat_summ <- function(x, method = mean, ...) {
+  x %>% 
+    as_tibble() %>% 
+    select(where(is.numeric)) %>% 
+    map_dfr(method, .id = "var") 
+}
+
 ## ------------------------------------------------------------------------
 #' Transform data
 #' 
@@ -2463,6 +2491,7 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #' @importFrom graphics lines text
 #' @importFrom stats prcomp quantile sd var mahalanobis median qchisq
 #' @import tidyr dplyr purrr tibble ggplot2
+#' @importFrom magrittr %>%
 #' @importFrom reshape2 melt dcast colsplit
 #' @importFrom grDevices colorRampPalette dev.off tiff
 #' @importFrom stats as.dendrogram as.dist as.hclust complete.cases cor
