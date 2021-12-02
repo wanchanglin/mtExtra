@@ -680,7 +680,7 @@ feat_count <- function(fs.ord, top.k = 30) {
     pivot_wider(names_from = variable, values_from = variable,
                 id_cols = value, values_fn = length, values_fill = 0) %>%
     rowwise() %>%
-    mutate(count = rowSums(across(where(is.numeric)))) %>%
+    dplyr::mutate(count = rowSums(across(where(is.numeric)))) %>%
     ## mutate(count = sum(c_across(where(is.numeric)))) %>%
     ungroup() %>%
     arrange(desc(count))
@@ -1290,10 +1290,12 @@ gg_heat_dend <- function(mat,
                          clust.method = "complete",
                          dend.line.size = 0.5) {
 
-  ## data_m <- tibble::rownames_to_column(mat) %>% reshape2::melt()
   mat <- as.data.frame(mat)
-  data_m <- cbind(rn = rownames(mat), mat)
-  data_m <- reshape2::melt(data_m, id.vars = "rn")
+  # data_m <- cbind(rn = rownames(mat), mat)
+  # data_m <- reshape2::melt(data_m, id.vars = "rn")
+  data_m <- rownames_to_column(mat, var = "rn")
+  data_m <- data_m %>% 
+   pivot_longer(cols = !rn, names_to = "variable", values_to = "value")
 
   # Cluster rows
   if (row.dend) {
@@ -1498,11 +1500,26 @@ vec_stats <- function(x, na.rm = FALSE, conf.interval = .95) {
 #' @param bar a chracter string, supporting "SD", "SE" and "CI".
 #' @return retuns an vector including lower, center and upper values.
 #' @examples
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
 #' vec_segment(iris[,1])
 #' mat <- reshape2::melt(iris)
 #' plyr::ddply(mat, plyr::.(Species,variable), function(x,bar) {
 #'   vec_segment(x$value, bar = bar)
 #' }, bar = "SD")
+#' iris %>%
+#'   pivot_longer(cols = !Species, names_to = "variable") %>% 
+#'   group_by(Species, variable) %>%
+#' 	 nest() %>%
+#'   mutate(map_dfr(.x = data, .f = ~ vec_segment(.x$value))) %>%
+#' 	 select(!data)
+#'	
+#' iris %>%
+#'   pivot_longer(cols = !Species, names_to = "variable") %>% 
+#'   group_nest(Species, variable) %>%
+#'   mutate(map_dfr(data, ~ vec_segment(.x$value))) %>%
+#' 	 select(!data)
 #' @family vector stats functions
 #' @importFrom stats t.test
 #' @export 
@@ -2500,3 +2517,19 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #' @importFrom rlang .data
 #' @keywords internal
 "_PACKAGE"
+
+#' Pipe operator
+#'
+#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
+#' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+#' @param lhs A value or the magrittr placeholder.
+#' @param rhs A function call using the magrittr semantics.
+#' @return The result of calling `rhs(lhs)`.
+## wl-02-12-2021, Thus: get from running 'usethis::use_pipe()'
+NULL

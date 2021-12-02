@@ -16,6 +16,6 @@ RoxygenNote: 7.1.2
 LazyLoad: yes
 LazyData: yes
 ZipData: No
-Imports: rlang, ggplot2, dplyr, tidyr, purrr, tibble, magrittr, cowplot,
-  ggdendro, ggraph, igraph, MASS, lattice, latticeExtra, plyr, reshape2,
+Imports: rlang, reshape2, plyr, ggplot2, dplyr, tidyr, purrr, tibble, 
+  magrittr, cowplot, ggdendro, ggraph, igraph, MASS, lattice, latticeExtra,
   ellipse, ppcor, locfdr
