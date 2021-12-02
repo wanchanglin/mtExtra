@@ -20,10 +20,11 @@ retuns a summarised table.
 Summarise a data matrix.
 }
 \examples{
-\dontrun{
-iris \%>\% group_by(Species) \%>\% group_modify(~ df_summ(., method = mean))
-iris \%>\% group_by(Species) \%>\% group_modify(~ df_summ(., method = vec_stats))
-iris \%>\% group_by(Species) \%>\% do(df_summ(., method = vec_segment))
-iris \%>\% df_summ(method = sd)
-}
+library(dplyr)
+library(tidyr)
+library(purrr)
+iris \%>\% group_by(Species) \%>\% group_modify(~ dat_summ(., method = mean))
+iris \%>\% group_by(Species) \%>\% group_modify(~ dat_summ(., method = vec_stats))
+iris \%>\% group_by(Species) \%>\% do(dat_summ(., method = vec_segment))
+iris \%>\% dat_summ(method = sd)
 }

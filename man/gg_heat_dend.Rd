@@ -50,6 +50,5 @@ Plot heatmap of a data matrix using \code{ggplot2}. This funcion is modofied
 from https://bit.ly/2UUnY2L.
 }
 \examples{
-library(ggplot2)
 gg_heat_dend(mtcars)
 }

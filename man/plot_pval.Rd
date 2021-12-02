@@ -15,3 +15,7 @@ an object of class \code{ggplot2}
 \description{
 Plot the adjusted p-values using \code{ggplot2}
 }
+\examples{
+pval <- mtExtra:::pval
+plot_pval(pval)
+}

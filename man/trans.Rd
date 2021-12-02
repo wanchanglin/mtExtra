@@ -37,6 +37,18 @@ Perform data set transformation
  plyr::ddply(iris, ("Species"), function(x, method) {
    dat_trans(x[, 1:4], method = method)
  }, method = "range")
+
+## use 'tidyverse'
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+## transform whole data set
+iris \%>\% mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
+## transform data set with group
+iris \%>\% 
+  group_by(Species) \%>\%
+  mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
 }
 \references{
 Berg, R., Hoefsloot, H., Westerhuis, J., Smilde, A. and Werf, M. (2006),

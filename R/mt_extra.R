@@ -1,6 +1,5 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
-
 ## ------------------------------------------------------------------------
 #' Data matrix summary
 #' 
@@ -12,12 +11,13 @@
 #' @return retuns a summarised table.
 #' @export 
 #' @examples 
-#' \dontrun{
-#' iris %>% group_by(Species) %>% group_modify(~ df_summ(., method = mean))
-#' iris %>% group_by(Species) %>% group_modify(~ df_summ(., method = vec_stats))
-#' iris %>% group_by(Species) %>% do(df_summ(., method = vec_segment))
-#' iris %>% df_summ(method = sd)
-#' }
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
+#' iris %>% group_by(Species) %>% group_modify(~ dat_summ(., method = mean))
+#' iris %>% group_by(Species) %>% group_modify(~ dat_summ(., method = vec_stats))
+#' iris %>% group_by(Species) %>% do(dat_summ(., method = vec_segment))
+#' iris %>% dat_summ(method = sd)
 ## wl-20-10-2021, Wed: Data matrix summary using tidyverse
 ## wl-24-11-2021, Wed: use '.id' for rownames
 ## wl-29-11-2021, Mon: 'method' returns a vector or data matrix. 
@@ -52,10 +52,22 @@ dat_summ <- function(x, method = mean, ...) {
 #'  ## transform a data frame
 #'  mat <- iris[, 1:4]
 #'  dat_trans(mat, method = "log")
-#'  ## transform data frame under condition
+#'  ## transform data frame under different conditions
 #'  plyr::ddply(iris, ("Species"), function(x, method) {
 #'    dat_trans(x[, 1:4], method = method)
 #'  }, method = "range")
+#' 
+#' ## use 'tidyverse'
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
+#' 
+#' ## transform whole data set
+#' iris %>% mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
+#' ## transform data set within groups
+#' iris %>% 
+#'   group_by(Species) %>%
+#'   mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
 NULL
 
 ## ------------------------------------------------------------------------
@@ -738,27 +750,26 @@ feat_count_1 <- function(fs.ord, top.k = 30) {
 #'   - Basically CV<10 is very good, 10-20 is good, 20-30 is acceptable, 
 #'     and CV>30 is not acceptable. 
 #' @examples
+#' library(ggplot2)
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
+#' 
 #' data(iris)
 #' rsd(iris[, 1:4])
 #' 
 #' ## group rsd
-#' \dontrun{
-#' df_summ <- function(dat, method = mean, ...) {
-#'   dat %>% select(where(is.numeric)) %>% map_dfr(method) 
-#' }
-#' 
 #' val <- iris %>% 
 #'   group_by(Species) %>% 
-#' 	group_modify(~ df_summ(., method = rsd)) %>%
+#' 	 group_modify(~ dat_summ(., method = rsd)) %>%
 #'   pivot_longer(cols = !Species) %>% filter(!is.na(value))
 #' 
 #' ggplot(val, aes(x = value)) +
-#'     geom_histogram(colour = "black", fill = "white") +
-#'     facet_grid(Species ~ .)
+#'   geom_histogram(colour = "black", fill = "white") +
+#'   facet_grid(Species ~ .)
 #' ggplot(val, aes(x = Species, y = value)) + geom_boxplot()
 #' 
 #' ## The plotting of missing value is similiar like this.
-#' }
 #' @export
 ## lwc-02-06-2011: Relative standard deviation.
 ## wl-22-11-2021, Mon: 
@@ -847,8 +858,13 @@ plot_aam <- function(aam, fig_title = "Accuracy, AUC and Margin") {
 #' @param pval_list a data matix or a list of data matrix of p-value correction
 #' @return an object of class `ggplot2`
 #' @export  
+#' @examples 
+#' pval <- mtExtra:::pval
+#' plot_pval(pval)
 ## wl-09-11-2021, Tue: plot adjusted p-values
 ## wl-11-11-2021, Thu: deal with single matrix/data.frame
+## wl-02-12-2021, Thu: use 'usethis::use_data(pval, y, internal = TRUE)' to 
+##  get 'sysdata.rda'
 plot_pval <- function(pval_list) {
 
   if (!is.list(pval_list)) pval_list <- list(pval_list)
@@ -1272,7 +1288,6 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #' @importFrom ggdendro dendro_data segment
 #' @export 
 #' @examples 
-#' library(ggplot2)
 #' gg_heat_dend(mtcars)
 ## wl-24-11-2020, Tue: Heatmap with dendrograms with ggplot2
 ## wl-15-06-2021, Tue: add 'row_den_left'
@@ -1500,26 +1515,33 @@ vec_stats <- function(x, na.rm = FALSE, conf.interval = .95) {
 #' @param bar a chracter string, supporting "SD", "SE" and "CI".
 #' @return retuns an vector including lower, center and upper values.
 #' @examples
+#' library(plyr)
+#' library(reshape2)
 #' library(dplyr)
 #' library(tidyr)
 #' library(purrr)
+#' 
 #' vec_segment(iris[,1])
-#' mat <- reshape2::melt(iris)
-#' plyr::ddply(mat, plyr::.(Species,variable), function(x,bar) {
+#' 
+#' ## Use 'plyr' and 'reshape2' for group 
+#' mat <- melt(iris)
+#' ddply(mat, .(Species,variable), function(x,bar) {
 #'   vec_segment(x$value, bar = bar)
 #' }, bar = "SD")
+#' 
+#' ## Use 'tidyverse' for group 
 #' iris %>%
 #'   pivot_longer(cols = !Species, names_to = "variable") %>% 
 #'   group_by(Species, variable) %>%
-#' 	 nest() %>%
+#'   nest() %>%
 #'   mutate(map_dfr(.x = data, .f = ~ vec_segment(.x$value))) %>%
-#' 	 select(!data)
+#'   select(!data)
 #'	
 #' iris %>%
 #'   pivot_longer(cols = !Species, names_to = "variable") %>% 
 #'   group_nest(Species, variable) %>%
 #'   mutate(map_dfr(data, ~ vec_segment(.x$value))) %>%
-#' 	 select(!data)
+#'   select(!data)
 #' @family vector stats functions
 #' @importFrom stats t.test
 #' @export 

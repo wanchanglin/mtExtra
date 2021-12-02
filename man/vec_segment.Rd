@@ -19,26 +19,33 @@ Calculate vector's standard derivation, standard error of mean and
 confidencd interval.
 }
 \examples{
+library(plyr)
+library(reshape2)
 library(dplyr)
 library(tidyr)
 library(purrr)
+
 vec_segment(iris[,1])
-mat <- reshape2::melt(iris)
-plyr::ddply(mat, plyr::.(Species,variable), function(x,bar) {
+
+## Use 'plyr' and 'reshape2' for group 
+mat <- melt(iris)
+ddply(mat, .(Species,variable), function(x,bar) {
   vec_segment(x$value, bar = bar)
 }, bar = "SD")
+
+## Use 'tidyverse' for group 
 iris \%>\%
   pivot_longer(cols = !Species, names_to = "variable") \%>\% 
   group_by(Species, variable) \%>\%
-	 nest() \%>\%
+  nest() \%>\%
   mutate(map_dfr(.x = data, .f = ~ vec_segment(.x$value))) \%>\%
-	 select(!data)
+  select(!data)
 
 iris \%>\%
   pivot_longer(cols = !Species, names_to = "variable") \%>\% 
   group_nest(Species, variable) \%>\%
   mutate(map_dfr(data, ~ vec_segment(.x$value))) \%>\%
-	 select(!data)
+  select(!data)
 }
 \seealso{
 Other vector stats functions: 
