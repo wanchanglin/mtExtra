@@ -6,15 +6,18 @@
 \alias{trans}
 \title{Transform data}
 \usage{
-dat_trans(x, method = "auto", add = 1)
+dat_trans(x, method = "auto", na.rm = TRUE, add = 1)
 
-vec_trans(x, method = "auto", add = 1)
+vec_trans(x, method = "auto", na.rm = TRUE, add = 1)
 }
 \arguments{
 \item{x}{a matrix, data frame or vector.}
 
 \item{method}{transformation method, including: "center", "auto", "range",
 "pareto", "vast", "level", "log", "log10", "sqrt" and "asinh".}
+
+\item{na.rm}{a logical value indicating whether NA values should be
+stripped before the computation proceeds.}
 
 \item{add}{a shift value for log transformation.}
 }
@@ -26,13 +29,16 @@ Perform data set transformation
 }
 \examples{
  data(iris)
+
  ## transform an vector
  vec <- iris[, 1]
  dat_trans(vec, method = "auto")
  vec_trans(vec, method = "auto")
+
  ## transform a data frame
  mat <- iris[, 1:4]
  dat_trans(mat, method = "log")
+
  ## transform data frame under different conditions
  plyr::ddply(iris, ("Species"), function(x, method) {
    dat_trans(x[, 1:4], method = method)
@@ -45,6 +51,7 @@ library(purrr)
 
 ## transform whole data set
 iris \%>\% mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
+
 ## transform data set within groups
 iris \%>\% 
   group_by(Species) \%>\%

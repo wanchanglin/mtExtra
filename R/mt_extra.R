@@ -37,6 +37,8 @@ dat_summ <- function(x, method = mean, ...) {
 #' @param x a matrix, data frame or vector.
 #' @param method transformation method, including: "center", "auto", "range",
 #'   "pareto", "vast", "level", "log", "log10", "sqrt" and "asinh". 
+#' @param na.rm	a logical value indicating whether NA values should be 
+#'   stripped before the computation proceeds.
 #' @param add a shift value for log transformation.
 #' @return transformed data
 #' @references 
@@ -81,15 +83,15 @@ NULL
 #' @order 1
 ## wll-29-07-2015: Transform a data matrix
 ## Note: The programming structure is from ststs's 'sd' function.
-dat_trans <- function(x, method = "auto", add = 1) {
+dat_trans <- function(x, method = "auto", na.rm = TRUE, add = 1) {
   if (is.matrix(x)) {
-    res <- apply(x, 2, vec_trans, method = method, add = add)
+    res <- apply(x, 2, vec_trans, method = method, na.rm = na.rm, add = add)
   } else if (is.vector(x)) {
-    res <- vec_trans(x, method = method, add = add)
+    res <- vec_trans(x, method = method, na.rm = na.rm, add = add)
   } else if (is.data.frame(x)) {
-    res <- sapply(x, vec_trans, method = method, add = add)
+    res <- sapply(x, vec_trans, method = method, na.rm = na.rm, add = add)
   } else {
-    res <- vec_trans(as.vector(x), method = method, add = add)
+    res <- vec_trans(as.vector(x), method = method, na.rm = na.rm, add = add)
   }
 
   return(res)
@@ -100,18 +102,18 @@ dat_trans <- function(x, method = "auto", add = 1) {
 #' @rdname trans
 #' @order 2
 ## wll-29-07-2015: transform an vector
-vec_trans <- function(x, method = "auto", add = 1) {
+vec_trans <- function(x, method = "auto", na.rm = TRUE, add = 1) {
   method <- match.arg(method, c(
     "center", "auto", "range", "pareto", "vast",
     "level", "log", "log10", "sqrt", "asinh"
   ))
 
   ## basic functions
-  me <- function(x) mean(x, na.rm = T)
-  se <- function(x) sd(x, na.rm = T)
-  mx <- function(x) max(x, na.rm = T)
-  mn <- function(x) min(x, na.rm = T)
-  ## sm  <- function(x) sum(x,na.rm=T)
+  me <- function(x) mean(x, na.rm = na.rm)
+  se <- function(x) sd(x, na.rm = na.rm)
+  mx <- function(x) max(x, na.rm = na.rm)
+  mn <- function(x) min(x, na.rm = na.rm)
+  ## sm  <- function(x) sum(x, na.rm = na.rm)
 
   res <- switch(method,
     "center"  = (x - me(x)),
@@ -706,39 +708,6 @@ feat_count <- function(fs.ord, top.k = 30) {
 }
 
 ## ------------------------------------------------------------------------
-#' Get the count number of features
-#' 
-#' Calculate the features counts based on the frequency of multiple selectors.
-#' 
-#' @param fs.ord data matrix for multiple feature order lists.
-#' @param top.k top feature number to be processed.
-#' @return a data matrix of feature counts.
-#' @noRd 
-## wl-19-01-2016, Sat: get the count number of feature selectors in top-k
-##  feature orders.
-## wl-16-11-2021, Tue: 'reshape' works fine but 'reshape2::dcast()'
-##  margins = "grand_col"  has problem.
-feat_count_1 <- function(fs.ord, top.k = 30) {
-  fs.ord <- fs.ord[1:top.k, ]
-
-  ## Use melt and cast to get frequency table
-  # tmp <- reshape::melt(fs.ord, id = NULL)
-  # cons <- reshape::cast(tmp, value ~ variable,
-  #   fun.aggregate = length,
-  #   margins = "grand_col"
-  # )
-  ## FIX-ME: 'grand_col' does not work here. 
-  tmp <- melt(fs.ord, id = NULL)
-  cons <- dcast(tmp, value ~ variable,
-    fun.aggregate = length,
-    margins = "grand_col"
-  )
-  head(cons)
-  names(cons)[which(names(cons) == "(all)")] <- "count"
-  cons <- arrange(cons, desc(count))
-}
-
-## ------------------------------------------------------------------------
 #' Relative standard deviation
 #'
 #' Caculate Relative Standard Deviation(RSD). RSD is also known as the 
@@ -819,39 +788,45 @@ mv_perc <- function(x) {
 #' This function plots accuracy, AUC and margin (aam) of classification 
 #' results from package \code{mt}.
 #' 
-#' @param aam a data matrix of classification results.
+#' @param aam_list a data matrix of classification results.
 #' @param fig_title a string of figure title
 #' @return an object of class `ggplot2`
+#' @examples 
+#' aam <- mtExtra:::aam
+#' plot_aam(aam)
+#' @seealso `aam.mcl` in R package `mt` for how to get accurary, AUC and 
+#'   margin. 
 #' @export 
 ## lwc-06-05-2011: Wrapper function for plotting the aam results
 ##    (Accuracy, AUC and Margin).
 ## wl-09-11-2021, Tue: implement with ggplot2
-plot_aam <- function(aam, fig_title = "Accuracy, AUC and Margin") {
-  z <- melt(aam)
-  z <- z[complete.cases(z), ] ## in case NAs
-  names(z) <- c("classifier", "assessment", "value", "data")
-  z$classifier <- factor(z$classifier)
+## wl-03-12-2021, Fri: replace melt with functions in tidyverse
+plot_aam <- function(aam_list, fig_title = "Accuracy, AUC and Margin") {
+
+  if (!is.list(aam_list)) aam_list <- list(aam_list)
+
+  ## lst <- reshape2::melt(aam)
+  ## lst <- lst[complete.cases(lst), ]
+  ## names(lst) <- c("classifier", "assessment", "value", "data")
+
+  lst <- lapply(aam_list, function(x) {
+    x <- as.data.frame(x)
+    x <- rownames_to_column(x, var = "rn")
+  })
+  lst <- lst %>%
+    bind_rows(.id = "data") %>%
+    pivot_longer(-c(data, rn), names_to = "var") %>%
+    filter(complete.cases(.)) %>%
+    rename(classifier = rn, assessment = var)
 
   aam.p <-
-    ggplot(z, aes(y = value, x = data, color = classifier,
+    ggplot(lst, aes(y = value, x = data, color = classifier,
                   group = classifier)) +
     geom_line(aes(linetype = classifier)) +
     geom_point(aes(shape = classifier)) +
     ggtitle(fig_title) +
     facet_wrap(~ assessment) +
     coord_flip()
-  # aam.p <-
-  #     dotplot(factor(data, levels = rev(unique.default(data))) ~ value | assessment,
-  #       data = z, groups = classifier, as.table = T,
-  #       layout = c(length(unique(z$assessment)), 1),
-  #       par.settings = list(
-  #         superpose.line = list(lty = c(1:7)),
-  #         superpose.symbol = list(pch = rep(1:25))
-  #       ),
-  #       type = "o", ## comment this line to get original dot plot
-  #       auto.key = list(lines = TRUE, space = "bottom", columns = nlevels(z$classifier)),
-  #       xlab = "", main = fig_title, ...
-  #     )
   return(aam.p)
 }
 
@@ -884,25 +859,8 @@ plot_pval <- function(pval_list) {
 
   ## wl-09-11-2021, Tue: actually melt is easy to use
   ## tmp <- reshape2::melt(tmp)
-  ## p.pval <- xyplot(value ~ Var1 | L1,
-  ##   data = tmp, groups = Var2,
-  ##   par.settings = list(
-  ##     superpose.line = list(lty = c(1:7)),
-  ##     superpose.symbol = list(pch = rep(1:25))
-  ##   ),
-  ##   as.table = T, type = "l",
-  ##   par.strip.text = list(cex = 1.0), ylim = c(-0.005, 1.0),
-  ##   ylab = "P-values", xlab = "Index of feature ranks",
-  ##   main = paste0(DF, "P-value rejection numbers"),
-  ##   auto.key = list(lines = TRUE, points = F, space = "bottom", columns = 4),
-  ##   panel = function(x, y, ...) {
-  ##     panel.xyplot(x, y, ...)
-  ##     panel.abline(h = alpha, col = "black", lty = 2)
-  ##   }
-  ## )
 
-  ## wl-09-11-2021, Tue: equvalent to 'melt' by tidyverse. May be a temp
-  ## function.
+  ## wl-09-11-2021, Tue: equvalent to 'melt' by tidyverse. 
   ## wl-16-11-2021, Tue: use '.data' to prevent warning in 'rcmd check'
   tmp <- lapply(tmp, function(x) {
     x <- as_tibble(x) %>%
@@ -1915,19 +1873,17 @@ sym2long <- function(x, tri = c("upper", "lower")) {
     stop("Invalid method")
   }
 
-  if (F) { 
-    res <- reshape2::melt(x)
-    res <- res[complete.cases(res), ]
-    colnames(res) <- c("com1", "com2", "var")
-  } else {
-    idx <- which(!is.na(x), arr.ind = T)
-    fs1 <- rownames(x)[idx[, 1]]
-    fs2 <- colnames(x)[idx[, 2]]
-    res <- data.frame(
-      com1 = fs1, com2 = fs2, var = x[idx],
-      stringsAsFactors = FALSE
-    )
-  }
+  ## res <- reshape2::melt(x)
+  ## res <- res[complete.cases(res), ]
+  ## colnames(res) <- c("com1", "com2", "var")
+
+  idx <- which(!is.na(x), arr.ind = T)
+  fs1 <- rownames(x)[idx[, 1]]
+  fs2 <- colnames(x)[idx[, 2]]
+  res <- data.frame(
+    com1 = fs1, com2 = fs2, var = x[idx],
+    stringsAsFactors = FALSE
+  )
   return(res)
 }
 

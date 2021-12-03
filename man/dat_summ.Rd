@@ -17,7 +17,8 @@ dat_summ(x, method = mean, ...)
 retuns a summarised table.
 }
 \description{
-Summarise a data matrix.
+Summarise a data matrix. This is a wrapper function for any summary
+function on an vector.
 }
 \examples{
 library(dplyr)

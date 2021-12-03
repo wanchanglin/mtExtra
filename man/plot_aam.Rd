@@ -4,10 +4,10 @@
 \alias{plot_aam}
 \title{Wrapper function for plotting classification restults}
 \usage{
-plot_aam(aam, fig_title = "Accuracy, AUC and Margin")
+plot_aam(aam_list, fig_title = "Accuracy, AUC and Margin")
 }
 \arguments{
-\item{aam}{a data matrix of classification results.}
+\item{aam_list}{a data matrix of classification results.}
 
 \item{fig_title}{a string of figure title}
 }
@@ -17,4 +17,12 @@ an object of class \code{ggplot2}
 \description{
 This function plots accuracy, AUC and margin (aam) of classification
 results from package \code{mt}.
+}
+\examples{
+aam <- mtExtra:::aam
+plot_aam(aam)
+}
+\seealso{
+\code{aam.mcl} in R package \code{mt} for how to get accurary, AUC and
+margin.
 }
