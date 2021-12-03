@@ -30,6 +30,20 @@ Calculate the statistical summary of a vector.
 Can be used for error bar plotting. Modify from
 https://bit.ly/3onsqot
 }
+\examples{
+ 
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+iris \%>\% dat_summ(method = vec_stats)
+iris \%>\% group_by(Species) \%>\% group_modify(~ dat_summ(., method = vec_stats))
+iris \%>\%
+  pivot_longer(cols = !Species, names_to = "var") \%>\% 
+  group_nest(Species, var) \%>\%
+  mutate(map_dfr(data, ~ vec_stats(.x$value))) \%>\%
+  select(!data)
+}
 \seealso{
 Other vector stats functions: 
 \code{\link{vec_segment}()}

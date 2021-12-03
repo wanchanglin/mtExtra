@@ -3,7 +3,8 @@
 ## ------------------------------------------------------------------------
 #' Data matrix summary
 #' 
-#' Summarise a data matrix.
+#' Summarise a data matrix. This is a wrapper function for any summary 
+#' function on an vector.
 #' 
 #' @param x a matrix-like object.
 #' @param method summary method for an vector.
@@ -45,13 +46,16 @@ dat_summ <- function(x, method = mean, ...) {
 #' @name trans
 #' @examples
 #'  data(iris)
+#' 
 #'  ## transform an vector
 #'  vec <- iris[, 1]
 #'  dat_trans(vec, method = "auto")
 #'  vec_trans(vec, method = "auto")
+#' 
 #'  ## transform a data frame
 #'  mat <- iris[, 1:4]
 #'  dat_trans(mat, method = "log")
+#' 
 #'  ## transform data frame under different conditions
 #'  plyr::ddply(iris, ("Species"), function(x, method) {
 #'    dat_trans(x[, 1:4], method = method)
@@ -64,6 +68,7 @@ dat_summ <- function(x, method = mean, ...) {
 #' 
 #' ## transform whole data set
 #' iris %>% mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
+#' 
 #' ## transform data set within groups
 #' iris %>% 
 #'   group_by(Species) %>%
@@ -1483,6 +1488,18 @@ heat_dend <- function(mat, x.rot = 60,
 #' @details Can be used for error bar plotting. Modify from
 #'   https://bit.ly/3onsqot
 #' @family vector stats functions
+#' @examples  
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
+#' 
+#' iris %>% dat_summ(method = vec_stats)
+#' iris %>% group_by(Species) %>% group_modify(~ dat_summ(., method = vec_stats))
+#' iris %>%
+#'   pivot_longer(cols = !Species, names_to = "var") %>% 
+#'   group_nest(Species, var) %>%
+#'   mutate(map_dfr(data, ~ vec_stats(.x$value))) %>%
+#'   select(!data)
 #' @export 
 ## wl-18-05-2021, Tue: stats of a vector.
 vec_stats <- function(x, na.rm = FALSE, conf.interval = .95) {

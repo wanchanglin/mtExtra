@@ -33,7 +33,7 @@ Perform data set transformation
  ## transform a data frame
  mat <- iris[, 1:4]
  dat_trans(mat, method = "log")
- ## transform data frame under condition
+ ## transform data frame under different conditions
  plyr::ddply(iris, ("Species"), function(x, method) {
    dat_trans(x[, 1:4], method = method)
  }, method = "range")
@@ -45,7 +45,7 @@ library(purrr)
 
 ## transform whole data set
 iris \%>\% mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
-## transform data set with group
+## transform data set within groups
 iris \%>\% 
   group_by(Species) \%>\%
   mutate(across(where(is.numeric), ~ vec_trans(., method = "range")))
