@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{cor_tab}
 \alias{cor_tab}
-\title{Get correlation coefficient and p-values}
+\title{Caculate correlation coefficient and p-values}
 \usage{
 cor_tab(
   x,
@@ -28,7 +28,7 @@ and the upper triangular is adjusted p-values
 }
 }
 \description{
-Return correlation coefficient and p-values.
+Calculate correlation coefficient and p-values.
 }
 \details{
 This file is modified from 'cor.table' of package 'picante'

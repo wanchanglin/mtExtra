@@ -37,3 +37,6 @@ cluster centres.
 \description{
 Perform hierarchical cluster analysis based on correlation.
 }
+\examples{
+cor_hcl(mtcars)
+}

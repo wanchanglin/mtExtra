@@ -28,3 +28,8 @@ a list of \code{ggplot2} plots.
 \description{
 Perform network analysis for correlation coefficient.
 }
+\examples{
+res <- cor_net(mtcars)
+names(res)
+res
+}

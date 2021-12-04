@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{feat_count}
 \alias{feat_count}
-\title{Get the count number of features}
+\title{Caculate the count number of features}
 \usage{
 feat_count(fs.ord, top.k = 30)
 }
