@@ -841,6 +841,8 @@ plot_aam <- function(aam_list, fig_title = "Accuracy, AUC and Margin") {
 #' @examples 
 #' pval <- mtExtra:::pval
 #' plot_pval(pval)
+## wl-03-10-2021, Sun: the output of melt will be different if x is
+##  either matrix or data frame.
 ## wl-09-11-2021, Tue: plot adjusted p-values
 ## wl-11-11-2021, Thu: deal with single matrix/data.frame
 ## wl-02-12-2021, Thu: use 'usethis::use_data(pval, y, internal = TRUE)' to 
@@ -851,13 +853,8 @@ plot_pval <- function(pval_list) {
 
   tmp <- lapply(pval_list, function(x) {
     rownames(x) <- 1:nrow(x)
-    ## wl-03-10-2021, Sun: the output of melt will be different if x is
-    ##  either matrix or data frame.
-    # x <- as.data.frame(x)
     x
   })
-
-  ## wl-09-11-2021, Tue: actually melt is easy to use
   ## tmp <- reshape2::melt(tmp)
 
   ## wl-09-11-2021, Tue: equvalent to 'melt' by tidyverse. 
@@ -1061,6 +1058,31 @@ cor_net <- function(mat,
 }
 
 ## -----------------------------------------------------------------------
+#' Melt a numeric data matrix to long format
+#'
+#' Reshape a matrix or data frame to long format with row names and column
+#' names in two columns.
+#' 
+#' @param x a matrix or data frame
+#' @return returns a `tibble` object
+#' @details `reshape2::melt` keeps the rownames when melting a matrix, but
+#'   not when melting a data frame. This function keeps rownames for both 
+#'   matrix and data frame.
+#' @export
+#' @examples
+#' class(mtcars)     # data.frame
+#' reshape2::melt(mtcars)
+#' reshape2::melt(as.matrix(mtcars))
+#' dat2long(mtcars)
+## wl-04-12-2021, Sat: write this function with tidyr
+dat2long <- function(x) {
+  x %>% 
+    as.data.frame() %>%
+    rownames_to_column(var = "row_name") %>%
+    pivot_longer(!row_name, names_to = "col_name")
+}
+
+## -----------------------------------------------------------------------
 #' Bipartite/two-mode correlation network
 #' 
 #' Perform bipartite/two-mode correlation network analysis.
@@ -1078,7 +1100,9 @@ cor_net <- function(mat,
 ## wl-19-06-2021, Thu: change family font from 'Arial' to 'sans'. So no
 ##  'extrafont' is needed for PDF output.
 bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
-  g_dat <- melt(co_mat)
+  ## g_dat <- reshape2::melt(co_mat)
+  ## g_dat <- reshape2:::melt.matrix(co_mat)
+  g_dat <- dat2long(co_mat)
   if (!is.null(dn)) {
     names(g_dat) <- c(dn, "corr")
   } else {
