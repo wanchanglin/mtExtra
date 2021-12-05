@@ -2,7 +2,7 @@ Package: mtExtra
 Date: 2021-11-14
 Type: Package
 Title: More functions for metabolomics data analysis
-Version: 0.1.0
+Version: 0.1.1
 Author: Wanchang Lin
 Maintainer: Wanchang Lin <wanchanglin@hotmail.com>
 Description: Further functions for metabolomics data analysis.
