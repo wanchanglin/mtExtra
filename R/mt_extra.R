@@ -472,6 +472,34 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' @seealso [locfdr()] 
 #' @family variable filters
 #' @importFrom locfdr locfdr
+#' @examples 
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
+#' library(readr)
+#' 
+#' ## get ionomics data
+#' dat <- read_csv("https://github.com/wanchanglin/ionflow/raw/master/extra/paper_ko.csv")
+#' dim(dat)
+#' 
+#' ## missing valuee filling with mean
+#' dat <- dat %>% 
+#'   mutate(across(where(is.numeric), function(x) {
+#'     m <- mean(x, na.rm = TRUE)
+#'     x[is.na(x)] <- m
+#'     x
+#'   }))
+#' dat
+#' 
+#' res <- locfdr_filter(t(dat[, -1]), plot = 1)
+#' res$thres
+#' 
+#' ## filter data
+#' dat <- dat[res$idx, , drop = FALSE]
+#' 
+#' ## symbolise data
+#' dat_sym <- dat %>% 
+#'   mutate(across(where(is.numeric), ~ dat_symb(., thres = res$thres)))
 #' @export 
 ## wl-09-12-2020, Wed: Filter data based on z.2 of 'locfdr'
 ## wl-16-12-2020, Wed: add fixed threshold in case failurer of 'locfdr'

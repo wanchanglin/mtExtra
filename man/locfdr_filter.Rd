@@ -44,6 +44,35 @@ corresponding element of z.2 is NA, and the corresponding triangle does
 not appear.
 }
 }
+\examples{
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(readr)
+
+## get ionomics data
+dat <- read_csv("https://github.com/wanchanglin/ionflow/raw/master/extra/paper_ko.csv")
+dim(dat)
+
+## missing valuee filling with mean
+dat <- dat \%>\% 
+  mutate(across(where(is.numeric), function(x) {
+    m <- mean(x, na.rm = TRUE)
+    x[is.na(x)] <- m
+    x
+  }))
+dat
+
+res <- locfdr_filter(t(dat[, -1]), plot = 1)
+res$thres
+
+## filter data
+dat <- dat[res$idx, , drop = FALSE]
+
+## symbolise data
+dat_sym <- dat \%>\% 
+  mutate(across(where(is.numeric), ~ dat_symb(., thres = res$thres)))
+}
 \seealso{
 \code{\link[=locfdr]{locfdr()}}
 

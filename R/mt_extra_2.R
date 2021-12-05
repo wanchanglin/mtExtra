@@ -2,13 +2,13 @@
 ## --------------------------------------------------------------------------
 #' Trim white spaces
 #' 
-#' Trim white spaces.
+#' Trim head and hail white spaces of a string.
 #' 
 #' @param string a character string to be processed.
-#' @return returns a trimmed string.
+#' @return a trimmed string.
 #' @export 
 ## lwc-29-04-2013: trim white spaces
-str_trim <- function(string) {
+trim_str <- function(string) {
   string <- gsub("^[ \t]+|[ \t]+$", "", string) ## trim white spaces
   return(string)
 }
