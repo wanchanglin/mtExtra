@@ -9,14 +9,14 @@ vec_segment(x, bar = c("SD", "SE", "CI"))
 \arguments{
 \item{x}{an vector.}
 
-\item{bar}{a chracter string, supporting "SD", "SE" and "CI".}
+\item{bar}{a character string, supporting "SD", "SE" and "CI".}
 }
 \value{
-retuns an vector including lower, center and upper values.
+an vector including lower, center and upper values.
 }
 \description{
 Calculate vector's standard derivation, standard error of mean and
-confidencd interval.
+confidence interval.
 }
 \examples{
 library(plyr)

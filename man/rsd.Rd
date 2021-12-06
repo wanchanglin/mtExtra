@@ -48,5 +48,5 @@ ggplot(val, aes(x = value)) +
   facet_grid(Species ~ .)
 ggplot(val, aes(x = Species, y = value)) + geom_boxplot()
 
-## The plotting of missing value is similiar like this.
+## The plotting of missing value is similar like this.
 }

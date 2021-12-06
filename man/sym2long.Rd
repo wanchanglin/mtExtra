@@ -12,7 +12,7 @@ sym2long(x, tri = c("upper", "lower"))
 \item{tri}{triangular being used.}
 }
 \value{
-returns a data frame of pair-wise comparison.
+a data frame of pair-wise comparison.
 }
 \description{
 Convert a symmetric table(short format) to long format

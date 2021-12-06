@@ -7,7 +7,7 @@
 plot_pval(pval_list)
 }
 \arguments{
-\item{pval_list}{a data matix or a list of data matrix of p-value correction}
+\item{pval_list}{a data matrix or a list of data matrix of p-value correction}
 }
 \value{
 an object of class \code{ggplot2}

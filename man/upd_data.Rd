@@ -7,10 +7,10 @@
 upd_data(dat.all, ord)
 }
 \arguments{
-\item{dat.all}{a list of metobolomics data including indensity data, peak
+\item{dat.all}{a list of metabolomics data including intensity data, peak
 data and meta data}
 
-\item{ord}{a subset of selected freature orders}
+\item{ord}{a subset of selected feature orders}
 }
 \description{
 Update data set after feature selection.

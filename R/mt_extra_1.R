@@ -8,7 +8,7 @@
 #' @param x a matrix-like object.
 #' @param method summary method for an vector.
 #' @param ... further parameters for `method`.
-#' @return retuns a summarised table.
+#' @return a summarised table.
 #' @export 
 #' @examples 
 #' library(dplyr)
@@ -20,7 +20,7 @@
 #' iris %>% dat_summ(method = sd)
 ## wl-20-10-2021, Wed: Data matrix summary using tidyverse
 ## wl-24-11-2021, Wed: use '.id' for rownames
-## wl-29-11-2021, Mon: 'method' returns a vector or data matrix. 
+## wl-29-11-2021, Mon: 'method'  a vector or data matrix. 
 dat_summ <- function(x, method = mean, ...) {
   x %>% 
     as_tibble() %>% 
@@ -33,11 +33,11 @@ dat_summ <- function(x, method = mean, ...) {
 #' 
 #' Calculate the statistical summary of a vector.
 #' 
-#' @param x a numveric vector.
+#' @param x a numeric vector.
 #' @param na.rm remove NA or not.
-#' @param conf.interval a numeric value for confidenice interval.
+#' @param conf.interval a numeric value for confidence interval.
 #' @return 
-#'   retuns a vector of summary consisting:
+#'   a vector of summary consisting:
 #'   - number of vector length
 #'   - vector mean
 #'   - vector standard derivation   
@@ -84,11 +84,11 @@ vec_stats <- function(x, na.rm = FALSE, conf.interval = .95) {
 #' Vector statistics for error bar plotting
 #' 
 #' Calculate vector's standard derivation, standard error of mean and 
-#' confidencd interval.
+#' confidence interval.
 #' 
 #' @param x an vector.
-#' @param bar a chracter string, supporting "SD", "SE" and "CI".
-#' @return retuns an vector including lower, center and upper values.
+#' @param bar a character string, supporting "SD", "SE" and "CI".
+#' @return an vector including lower, center and upper values.
 #' @examples
 #' library(plyr)
 #' library(reshape2)
@@ -256,7 +256,7 @@ vec_trans <- function(x, method = "auto", na.rm = TRUE, add = 1) {
 #' names in two columns.
 #' 
 #' @param x a matrix or data frame
-#' @return returns a `tibble` object
+#' @return  a `tibble` object
 #' @details `reshape2::melt` keeps the rownames when melting a matrix, but
 #'   not when melting a data frame. This function keeps rownames for both 
 #'   matrix and data frame.
@@ -271,7 +271,9 @@ dat2long <- function(x) {
   x %>% 
     as.data.frame() %>%
     rownames_to_column(var = "row_name") %>%
-    pivot_longer(!row_name, names_to = "col_name")
+    pivot_longer(-c("row_name"), names_to = "col_name")
+    # pivot_longer(!row_name, names_to = "col_name")
+    # pivot_longer(!.data$row_name, names_to = "col_name")
 }
 
 ## -----------------------------------------------------------------------
@@ -281,7 +283,7 @@ dat2long <- function(x) {
 #' 
 #' @param x a symmetric matrix-like data set.
 #' @param tri triangular being used.
-#' @return returns a data frame of pair-wise comparison.
+#' @return  a data frame of pair-wise comparison.
 #' @examples 
 #' co <- cor_tab(mtcars, cor.method = "spearman", adj.method = "BH")
 #' names(co)
@@ -360,7 +362,7 @@ range_scale <- function(x, range = c(0, 1)) {
 }
 
 ## ------------------------------------------------------------------------
-#' Wrapper function for plotting classification restults
+#' Wrapper function for plotting classification results
 #' 
 #' This function plots accuracy, AUC and margin (aam) of classification 
 #' results from package \code{mt}.
@@ -371,7 +373,7 @@ range_scale <- function(x, range = c(0, 1)) {
 #' @examples 
 #' aam <- mtExtra:::aam
 #' plot_aam(aam)
-#' @seealso `aam.mcl` in R package `mt` for how to get accurary, AUC and 
+#' @seealso `aam.mcl` in R package `mt` for how to get accuracy, AUC and 
 #'   margin. 
 #' @export 
 ## lwc-06-05-2011: Wrapper function for plotting the aam results
@@ -390,13 +392,13 @@ plot_aam <- function(aam_list, fig_title = "Accuracy, AUC and Margin") {
     x <- rownames_to_column(x, var = "rn")
   }) %>%
     bind_rows(.id = "data") %>%
-    pivot_longer(-c(data, rn), names_to = "var") %>%
-    filter(complete.cases(.)) %>%
-    rename(classifier = rn, assessment = var)
+    pivot_longer(-c("data", "rn"), names_to = "var") %>%
+    drop_na() %>%
+    rename("classifier" = rn, "assessment" = var)
 
   aam.p <-
     ggplot(lst, aes(y = value, x = data, color = classifier,
-                  group = classifier)) +
+                    group = classifier)) +
     geom_line(aes(linetype = classifier)) +
     geom_point(aes(shape = classifier)) +
     ggtitle(fig_title) +
@@ -410,7 +412,7 @@ plot_aam <- function(aam_list, fig_title = "Accuracy, AUC and Margin") {
 #' 
 #' Plot the adjusted p-values using `ggplot2`
 #' 
-#' @param pval_list a data matix or a list of data matrix of p-value correction
+#' @param pval_list a data matrix or a list of data matrix of p-value correction
 #' @return an object of class `ggplot2`
 #' @export  
 #' @examples 
@@ -440,8 +442,8 @@ plot_pval <- function(pval_list) {
   })
   tmp <- tmp %>%
     bind_rows(.id = "data") %>%
-    pivot_longer(-c(data, rn), names_to = "variable") %>%
-    filter(complete.cases(.))
+    pivot_longer(-c("data", "rn"), names_to = "variable") %>%
+    drop_na()
 
   ## wl-24-05-2021, Mon: combine two legends with the same legend title
   p <- ggplot(tmp, aes(x = rn, y = value)) +
@@ -457,22 +459,22 @@ plot_pval <- function(pval_list) {
 ## -----------------------------------------------------------------------
 #' Heatmap with dendrograms with ggplot2
 #' 
-#' Plot heatmap of a data matrix using `ggplot2`. This funcion is modofied 
+#' Plot heatmap of a data matrix using `ggplot2`. This function is modified 
 #' from https://bit.ly/2UUnY2L.
 #' 
 #' @param mat a data mstrix to be plotted.
 #' @param row.dend plot row dendrogram or not.
 #' @param col.dend plot column dendrogram ot not.
-#' @param row.dend.right a ligical value to indivate the position of row 
+#' @param row.dend.right a logical value to indicate the position of row 
 #'   dendrogram.
 #' @param colors a vector of colours for heatmap.
 #' @param font.size label font size.
 #' @param x.rot plot rotate degree.
-#' @param legend.title lengend title.
+#' @param legend.title legend title.
 #' @param dist.method distance method.
 #' @param clust.method cluster method.
 #' @param dend.line.size dendrogram line size.
-#' @return retuns an object of class `ggplot2`.
+#' @return an object of class `ggplot2`.
 #' @importFrom cowplot axis_canvas insert_yaxis_grob ggdraw
 #' @importFrom ggdendro dendro_data segment
 #' @export 
@@ -759,14 +761,14 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #' @importFrom ellipse ellipse
 #' @importFrom graphics lines text
 #' @importFrom stats prcomp quantile sd var mahalanobis median qchisq
-#' @import tidyr dplyr purrr tibble ggplot2
+#' @import tidyr dplyr purrr tibble ggplot2 
+#' @importFrom rlang .data
 #' @importFrom magrittr %>%
 #' @importFrom reshape2 melt dcast colsplit
 #' @importFrom grDevices colorRampPalette dev.off tiff
 #' @importFrom stats as.dendrogram as.dist as.hclust complete.cases cor
 #'   cutree dist hclust line order.dendrogram p.adjust pf pt qt
 #' @importFrom utils data head
-#' @importFrom rlang .data
 #' @keywords internal
 "_PACKAGE"
 
@@ -780,11 +782,30 @@ pca_plot <- function(x, y = NULL, scale = TRUE, ep.plot = FALSE, ...) {
 #' @export
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
-#' @param lhs A value or the magrittr placeholder.
+#' @param lhs A value or the magrittr place-holder.
 #' @param rhs A function call using the magrittr semantics.
 #' @return The result of calling `rhs(lhs)`.
 ## wl-02-12-2021, Thus: get from running 'usethis::use_pipe()'
 NULL
+
+utils::globalVariables(c(
+  'where',
+  'angle',
+  'classifier',
+  'clus',
+  'clust',
+  'edge',
+  'mod',
+  'name',
+  'rn',
+  'size',
+  'value',
+  'variable',
+  'x',
+  'xend',
+  'y',
+  'yend'
+))
 
 ##  1) dat_summ
 ##  2) vec_stats

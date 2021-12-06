@@ -13,7 +13,7 @@ outl_det_u(x, method = c("boxplot", "median", "mean"))
 \code{mean} and \code{median} are supported.}
 }
 \value{
-returns a logical vector.
+a logical vector.
 }
 \description{
 Perform outlier detection using univariate method.

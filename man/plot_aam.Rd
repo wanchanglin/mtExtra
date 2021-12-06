@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra_1.R
 \name{plot_aam}
 \alias{plot_aam}
-\title{Wrapper function for plotting classification restults}
+\title{Wrapper function for plotting classification results}
 \usage{
 plot_aam(aam_list, fig_title = "Accuracy, AUC and Margin")
 }
@@ -23,6 +23,6 @@ aam <- mtExtra:::aam
 plot_aam(aam)
 }
 \seealso{
-\code{aam.mcl} in R package \code{mt} for how to get accurary, AUC and
+\code{aam.mcl} in R package \code{mt} for how to get accuracy, AUC and
 margin.
 }

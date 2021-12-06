@@ -12,7 +12,7 @@ arrange_row(df, ...)
 \item{...}{further parameters to \code{order}.}
 }
 \value{
-returns a sorted data frame.
+a sorted data frame.
 }
 \description{
 sort a date fram and keep the row names.

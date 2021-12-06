@@ -19,7 +19,7 @@ trim_str <- function(string) {
 #' Calculate the percentage of non digits.
 #' 
 #' @param mat a data matrix.
-#' @return returns an vector.
+#' @return  an vector.
 #' @export  
 ## wll-15-09-2015: Calculate the percentage of non digits
 non_digit <- function(mat) {
@@ -35,7 +35,7 @@ non_digit <- function(mat) {
 #' Calculate the non-zero percentage.
 #' 
 #' @param mat a data matrix.
-#' @return returns an vector.
+#' @return  an vector.
 #' @export  
 ## wll-09-09-2015: Calculate the non-zero percentage
 ## wll-22-10-2015: minor changes
@@ -53,7 +53,7 @@ non_zero <- function(mat) {
 #' Calculate the zero percentage
 #' 
 #' @param mat a data matrix.
-#' @return returns an vector.
+#' @return  an vector.
 #' @export  
 ## wll-09-09-2015: Calculate the zero percentage
 ## wll-22-10-2015: minor changes
@@ -72,7 +72,7 @@ is_zero <- function(mat) {
 #' 
 #' @param df  data frame being used to check index of missing values.
 #' @param vars vector of variable names in `df` for missing values checking.
-#' @return returns an vector of missing value index.
+#' @return  an vector of missing value index.
 #' @export 
 ## lwc-25-08-2011: get row index of missing values in data frame.
 df_na_idx <- function(df, vars) {
@@ -87,7 +87,7 @@ df_na_idx <- function(df, vars) {
 #' Row bind of a list of matrix or data frame with the same dimension.
 #' 
 #' @param list a list of data matrix.
-#' @return returns a data mstrix.
+#' @return  a data mstrix.
 #' @examples  
 #' df1 <- data.frame(x = c(1, 3), y = c(2, 4))
 #' df2 <- data.frame(x = c(5, 7), y = c(6, 8))
@@ -138,7 +138,7 @@ rbind_df <- function(list) {
 #' Convert matrix to df
 #' 
 #' @param x a matrix
-#' @return returns a data frame.
+#' @return  a data frame.
 #' @details from `.matrix_to_df` of package `plyr`.
 #' @export 
 ## lwc-28-01-2016: Convert matrix to df.
@@ -156,7 +156,7 @@ mat2df <- function(x) {
 #' Transpose a numeric data frame (with/without NAs)
 #' 
 #' @param x a data frame
-#' @return returns a transposed data frame.
+#' @return  a transposed data frame.
 #' @details It is used mostly for numeric data frame with NAs and return a
 ##   numeric data frame.
 #' @export 
@@ -181,7 +181,7 @@ df_t <- function(x) {
 ## ------------------------------------------------------------------------
 #' Get dimension matrix of a list of data frame
 #' 
-#' Retuns a matrix for dimension information of a list of data frame.
+#' Get a matrix for dimension information of a list of data frame.
 #' 
 #' @param mat_list  a list of data frame.
 #' @return a data frame.
@@ -200,7 +200,7 @@ dim_mat <- function(mat_list) {
 #' 
 #' @param df a data frame.
 #' @param ... further parameters to `order`.
-#' @return returns a sorted data frame.
+#' @return  a sorted data frame.
 #' @export 
 #' @details This function is modified from `arrange` of R package `plyr`.
 #'   `arrange` deliberately remove rownames, but sometimes it is worth to 
@@ -225,7 +225,7 @@ arrange_row <- function(df, ...) {
 #' Convert a list of unequal vectors to a data frame.
 #' 
 #' @param x a list of vector.
-#' @return returns a data matrix.
+#' @return  a data matrix.
 #' @importFrom plyr rbind.fill
 #' @examples 
 #' lst <- list(data.frame(a = 1, b = 2), data.frame(a = 2, c = 3, d = 5))
@@ -329,11 +329,11 @@ ps_tiff <- function(handle, PRE = NULL, fn = "temp") {
 ## --------------------------------------------------------------------------
 #' Extension of `ggdendro` with cluster centre.
 #' 
-#' Retrun a `ggdendro` extension with cluster centres.
+#' Return a `ggdendro` extension with cluster centres.
 #' 
 #' @param hc an object of `hclust`.
 #' @param k the number of clusters.
-#' @return returns `ggplot2` plot.
+#' @return  `ggplot2` plot.
 #' @details See `ggdendro` extension from https://bit.ly/2QOPSyJ for details.
 #' @noRd 
 ## wl-06-05-2021, Thu: ggdendro extension. From https://bit.ly/2QOPSyJ
@@ -376,7 +376,7 @@ dendro_data_k <- function(hc, k) {
 #' @param fan the orientation.
 #' @param branch.size,label.size,nudge.lable,expand.y a set of parameters to 
 #'   control `ggdendro`.
-#' @return returns a `ggplot2` plot of dendrogram.
+#' @return  a `ggplot2` plot of dendrogram.
 #' @importFrom ggdendro label
 #' @noRd  
 plot_ggdendro <- function(hcdata,
@@ -476,9 +476,9 @@ plot_ggdendro <- function(hcdata,
 #' 
 #' Update data set after feature selection. 
 #' 
-#' @param dat.all a list of metobolomics data including indensity data, peak 
+#' @param dat.all a list of metabolomics data including intensity data, peak 
 #'   data and meta data
-#' @param ord a subset of selected freature orders
+#' @param ord a subset of selected feature orders
 #' @export 
 ## lwc-03-03-2010: Update data set by a subset of features or variables.
 upd_data <- function(dat.all, ord) {

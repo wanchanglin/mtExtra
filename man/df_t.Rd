@@ -10,7 +10,7 @@ df_t(x)
 \item{x}{a data frame}
 }
 \value{
-returns a transposed data frame.
+a transposed data frame.
 }
 \description{
 Transpose a numeric data frame (with/without NAs)

@@ -15,7 +15,7 @@ and scatter. Only \code{mve}, \code{mcd} and \code{classical} are supported.}
 \item{conf.level}{a confidential level.}
 }
 \value{
-retuns a logical vector.
+a logical vector.
 }
 \description{
 Perform multivariate outlier detection.

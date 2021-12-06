@@ -10,7 +10,7 @@ mat2df(x)
 \item{x}{a matrix}
 }
 \value{
-returns a data frame.
+a data frame.
 }
 \description{
 Convert matrix to df

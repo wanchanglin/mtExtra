@@ -26,7 +26,7 @@ a list of with contents: \itemize{
 }
 \description{
 Perform variable filtering based on feature variability measurement such as
-standard deviation(SD) and interquantile range(IQR).
+standard deviation(SD) and inter-quantile range(IQR).
 }
 \examples{
 set.seed(100)

@@ -13,5 +13,5 @@ dim_mat(mat_list)
 a data frame.
 }
 \description{
-Retuns a matrix for dimension information of a list of data frame.
+Get a matrix for dimension information of a list of data frame.
 }

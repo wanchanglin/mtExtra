@@ -10,7 +10,7 @@ dat2long(x)
 \item{x}{a matrix or data frame}
 }
 \value{
-returns a \code{tibble} object
+a \code{tibble} object
 }
 \description{
 Reshape a matrix or data frame to long format with row names and column

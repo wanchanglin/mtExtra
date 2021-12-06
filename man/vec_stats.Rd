@@ -7,14 +7,14 @@
 vec_stats(x, na.rm = FALSE, conf.interval = 0.95)
 }
 \arguments{
-\item{x}{a numveric vector.}
+\item{x}{a numeric vector.}
 
 \item{na.rm}{remove NA or not.}
 
-\item{conf.interval}{a numeric value for confidenice interval.}
+\item{conf.interval}{a numeric value for confidence interval.}
 }
 \value{
-retuns a vector of summary consisting:
+a vector of summary consisting:
 \itemize{
 \item number of vector length
 \item vector mean

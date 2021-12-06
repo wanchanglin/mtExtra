@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{cor_tab}
 \alias{cor_tab}
-\title{Caculate correlation coefficient and p-values}
+\title{Calculate correlation coefficient and p-values}
 \usage{
 cor_tab(
   x,

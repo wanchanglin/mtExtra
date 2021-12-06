@@ -12,7 +12,7 @@ df_na_idx(df, vars)
 \item{vars}{vector of variable names in \code{df} for missing values checking.}
 }
 \value{
-returns an vector of missing value index.
+an vector of missing value index.
 }
 \description{
 Get row index of missing values in data frame.

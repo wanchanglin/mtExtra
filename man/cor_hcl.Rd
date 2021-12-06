@@ -17,7 +17,7 @@ cor_hcl(
 \arguments{
 \item{mat}{a data matrix}
 
-\item{cutoff}{a threshold for correlation anaalysis.}
+\item{cutoff}{a threshold for correlation analysis.}
 
 \item{use}{a string giving a method for computing covariances. For details,
 see \code{cor}.}
@@ -28,10 +28,10 @@ see \code{cor}.}
 
 \item{size}{text font size of \code{ggplot2}.}
 
-\item{rotate}{a logical indicating wheter to rotate teh plot.}
+\item{rotate}{a logical indicating whether to rotate plot.}
 }
 \value{
-retuns a list of a \code{ggplot2} object for clustering and a list of
+a list of a \code{ggplot2} object for clustering and a list of
 cluster centres.
 }
 \description{

@@ -7,9 +7,9 @@
 locfdr_filter(x, plot = 1, thres = NULL, ...)
 }
 \arguments{
-\item{x}{a data metirx}
+\item{x}{a data metrix}
 
-\item{plot}{an interger for plotting. 0 gives no plots. 1 gives single
+\item{plot}{an integer for plotting. 0 gives no plots. 1 gives single
 plot showing the histogram of zz and fitted densities f and p0*f0.}
 
 \item{thres}{a user defined threshold for filtering. The default is NULL,
@@ -32,9 +32,9 @@ of \code{locfdr}.
 \itemize{
 \item Keep the variables which have at least one significant element. The
 significant element is defined as larger than the lower of threshold or
-less than the upper of theshold.
+less than the upper of threshold.
 \item Threshold can be given by user or be estimated by \code{locfdr}, i.e. the
-returned \code{z.2} as a threshold. It is not gurranted that \code{locfdr} returns
+returned \code{z.2} as a threshold. It is not guaranteed that \code{locfdr}
 \code{z.2}. If not, user must provide this value.
 \item From R package \code{locfdr} vignette:
 \code{z.2} is the interval along the zz-axis outside of which \code{fdr(z) < 0.2},

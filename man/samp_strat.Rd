@@ -14,7 +14,7 @@ samp_strat(grp, len, strat = TRUE)
 \item{strat}{a logical value indicated the sampling should be stratified.}
 }
 \value{
-returns a selected index.
+a selected index.
 }
 \description{
 Select random sample with stratification from a binary group.

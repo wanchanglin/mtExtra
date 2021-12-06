@@ -7,7 +7,7 @@
 net_graph(edge_df, node_df = NULL)
 }
 \arguments{
-\item{edge_df}{graph eddge matrix.}
+\item{edge_df}{graph edge matrix.}
 
 \item{node_df}{graph vertex matrix.}
 }

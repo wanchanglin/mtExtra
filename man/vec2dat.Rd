@@ -10,7 +10,7 @@ vec2dat(x)
 \item{x}{a list of vector.}
 }
 \value{
-returns a data matrix.
+a data matrix.
 }
 \description{
 Convert a list of unequal vectors to a data frame.

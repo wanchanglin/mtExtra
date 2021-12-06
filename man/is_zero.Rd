@@ -10,7 +10,7 @@ is_zero(mat)
 \item{mat}{a data matrix.}
 }
 \value{
-returns an vector.
+an vector.
 }
 \description{
 Calculate the zero percentage

@@ -1,7 +1,7 @@
 ## wl-09-11-2021, Tue: gather all general functions from 2015
 
 ## ------------------------------------------------------------------------
-#' Caculate correlation coefficient and p-values
+#' Calculate correlation coefficient and p-values
 #' 
 #' Calculate correlation coefficient and p-values.
 #' 
@@ -67,14 +67,14 @@ cor_tab <- function(x,
 #' Perform hierarchical cluster analysis based on correlation.
 #' 
 #' @param mat a data matrix
-#' @param cutoff a threshold for correlation anaalysis.
+#' @param cutoff a threshold for correlation analysis.
 #' @param use a string giving a method for computing covariances. For details, 
 #'   see `cor`.
 #' @param method method for correlation `cor`.
 #' @param fig_title title for plotting
 #' @param size text font size of `ggplot2`.
-#' @param rotate a logical indicating wheter to rotate teh plot.
-#' @return retuns a list of a `ggplot2` object for clustering and a list of 
+#' @param rotate a logical indicating whether to rotate plot.
+#' @return a list of a `ggplot2` object for clustering and a list of 
 #'   cluster centres.
 #' @importFrom ggdendro ggdendrogram dendro_data
 #' @examples 
@@ -82,7 +82,7 @@ cor_tab <- function(x,
 #' @export 
 ## wl-05-10-2021, Tue: correlation hierarchical cluster analysis
 ## Note:
-##  1.) use 'ggdendro' but more eddforts are needed.
+##  1.) use 'ggdendro' but more efforts are needed.
 ##  2.) modify from 'cor.hcl' in R package 'mt'
 cor_hcl <- function(mat, cutoff = 0.75,
                     use = "pairwise.complete.obs",
@@ -140,9 +140,9 @@ cor_hcl <- function(mat, cutoff = 0.75,
 #' 
 #' @param mat a data matrix for correlation analysis
 #' @param use,method parameters of `cor`.
-#' @param thres correlation coeeficient threshold for network analysis. Only 
-#'   keep those with coeeficient larger than `thres`.
-#' @param fig_title a chracter string for gifure title.
+#' @param thres correlation coefficient threshold for network analysis. Only 
+#'   keep those with coefficient larger than `thres`.
+#' @param fig_title a character string for figure title.
 #' @return a list of `ggplot2` plots. 
 #' @importFrom ggraph create_layout ggraph geom_edge_link geom_node_point
 #'    scale_edge_colour_discrete geom_node_text
@@ -226,8 +226,8 @@ cor_net <- function(mat,
 #' 
 #' Perform bipartite/two-mode correlation network analysis.
 #' 
-#' @param co_mat a correlation coffeficient matrix.
-#' @param thres correlation coeeficient threshold for network analysis.
+#' @param co_mat a correlation coefficient matrix.
+#' @param thres correlation coefficient threshold for network analysis.
 #' @param dn a character string for correlation name.
 #' @return a list of `ggplot2` plots.
 #' @importFrom igraph graph_from_data_frame bipartite_mapping V E
@@ -248,7 +248,7 @@ bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
     names(g_dat)[3] <- "corr"
   }
 
-  ## wl-29-04-2021, Thu: differenct data sets need different threshold
+  ## wl-29-04-2021, Thu: different data sets need different threshold
   ## ind <- g_dat$corr > thres
   ind <- abs(g_dat$corr) > thres
   mat <- g_dat[ind, ]
@@ -313,9 +313,9 @@ bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
 #' 
 #' Perform partial correlation analysis of two data matrix
 #' 
-#' @param x,y two data matrix for correlation anlysys.
+#' @param x,y two data matrix for correlation analyses.
 #' @param method correlation method.
-#' @return returns a correlation matrix.
+#' @return  a correlation matrix.
 #' @importFrom ppcor pcor
 #' @export 
 ## wl-04-06-2021, Fri: partial correlation between two data frame
@@ -358,7 +358,7 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #'  threshold will be kept.
 #' @return a filtered data.
 #' @details This filter process takes two steps. First, the missing values 
-#'  filterting is performed on either "qc" or "sample". Then RSD-based 
+#'  filtering is performed on either "qc" or "sample". Then RSD-based 
 #'  filtering is applied to "qc" data.
 #' @family variable filters
 #' @export 
@@ -443,8 +443,8 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' Filter data based on local false discovery rate. This function uses `z.2`
 #' of `locfdr`.
 #' 
-#' @param x a data metirx
-#' @param plot an interger for plotting. 0 gives no plots. 1 gives single 
+#' @param x a data metrix
+#' @param plot an integer for plotting. 0 gives no plots. 1 gives single 
 #'   plot showing the histogram of zz and fitted densities f and p0*f0.
 #' @param thres a user defined threshold for filtering. The default is NULL, 
 #' which use local FDR as threshold for filtering.
@@ -458,9 +458,9 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' @details 
 #' - Keep the variables which have at least one significant element. The 
 #'   significant element is defined as larger than the lower of threshold or
-#'   less than the upper of theshold. 
+#'   less than the upper of threshold. 
 #' - Threshold can be given by user or be estimated by `locfdr`, i.e. the 
-#'   returned `z.2` as a threshold. It is not gurranted that `locfdr` returns
+#'   returned `z.2` as a threshold. It is not guaranteed that `locfdr` 
 #'   `z.2`. If not, user must provide this value.
 #' - From R package `locfdr` vignette: 
 #'   `z.2` is the interval along the zz-axis outside of which `fdr(z) < 0.2`,
@@ -502,7 +502,7 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #'   mutate(across(where(is.numeric), ~ dat_symb(., thres = res$thres)))
 #' @export 
 ## wl-09-12-2020, Wed: Filter data based on z.2 of 'locfdr'
-## wl-16-12-2020, Wed: add fixed threshold in case failurer of 'locfdr'
+## wl-16-12-2020, Wed: add fixed threshold in case failure of 'locfdr'
 ## wl-26-11-2021, Fri: Should check potential multiple arguments for `plot`
 ##  and `nulltype`.
 locfdr_filter <- function(x, plot = 1, thres = NULL, ...) {
@@ -544,9 +544,9 @@ locfdr_filter <- function(x, plot = 1, thres = NULL, ...) {
 }
 
 ## ------------------------------------------------------------------------
-#' Symbilise data set
+#' Symbolise data set
 #' 
-#' Symbilise data values as (-1, 0, 1) based on a range
+#' Symbolise data values as (-1, 0, 1) based on a range
 #' 
 #' @param x an vector or data matrix.
 #' @param thres an vector with lower and higher values.
@@ -570,7 +570,7 @@ dat_symb <- function(x, thres) {
     thres <- thres[1:2]
   }
 
-  ## wl-26-11-2021, Fri: same resukts but the second one is simple and clear
+  ## wl-26-11-2021, Fri: same results but the second one is simple and clear
   if (F) {
     data_l <- -1 * (x <= thres[1]) # left tail
     data_u <- 1 * (x >= thres[2])  # right tail
@@ -588,7 +588,7 @@ dat_symb <- function(x, thres) {
 #' Filtering variable based on variability
 #'
 #' Perform variable filtering based on feature variability measurement such as
-#' standard deviation(SD) and interquantile range(IQR).
+#' standard deviation(SD) and inter-quantile range(IQR).
 #'
 #' @param x a matrix or data frame.
 #' @param method variability measurement method, such as `IQR` and `sd`.
@@ -715,7 +715,7 @@ rsd_filter <- function(x, thres = 20) {
 #' @param x a numeric vector.
 #' @param method method for univariate outlier detection. Only `boxplot`, 
 #'   `mean` and `median` are supported.
-#' @return returns a logical vector.
+#' @return  a logical vector.
 #' @references 
 #'   Wilcox R R, Fundamentals of Modern Statistical Methods: Substantially 
 #'   Improving Power and Accuracy, Springer 2010 (2nd edition), pages 31-35.
@@ -762,7 +762,7 @@ outl_det_u <- function(x, method = c("boxplot", "median", "mean")) {
 #' @param method methods for resistant estimation of multivariate location 
 #'   and scatter. Only `mve`, `mcd` and `classical` are supported.
 #' @param conf.level a confidential level.
-#' @return retuns a logical vector.
+#' @return a logical vector.
 #' @importFrom MASS cov.rob
 #' @seealso [cov.rob()] for "Resistant Estimation of Multivariate Location
 #'  and Scatter"
@@ -776,7 +776,7 @@ outl_det_u <- function(x, method = c("boxplot", "median", "mean")) {
 #' outl <- outl_det_m(x, method = "mcd", conf.level = 0.95)
 ## lwc-30-01-2013: Multivariate outlier detection
 ## lwc-04-02-2013: Major changes.
-## wll-01-12-2015: the results bewtween pca.outlier and outl_det_m are
+## wll-01-12-2015: the results between pca.outlier and outl_det_m are
 ##   different. Need to be careful.
 ## Note: "mve" and "mcd" are based on approximate search. User need to set up
 ##       random seed by set.seed. For details, see ?cov.rob
@@ -802,13 +802,13 @@ outl_det_m <- function(x, method = "mcd", conf.level = 0.95) {
 #' @param x a data matrix.
 #' @param y  a categorical data for batch/block information.
 #' @param method method for shifting.
-#' @return returns a shifted data matrix.
+#' @return  a shifted data matrix.
 #' @references 
 #'   Silvia Wagner, et.al, Tools in Metabonomics: An Integrated Validation
 #'   Approach for LC-MS Metabolic Profiling of Mercapturic Acids in Human
 #'   Urine Anal. Chem., 2007, 79 (7), pp 2918-2926, DOI: 10.1021/ac062153w
 #' @export 
-## lwc-07-07-2011: batch shifting: remove mean withing each batch/block
+## lwc-07-07-2011: batch shifting: remove mean within each batch/block
 batch_shift <- function(x, y, method = "mean") {
   x <- as.data.frame(x)
 
@@ -820,13 +820,16 @@ batch_shift <- function(x, y, method = "mean") {
 }
 
 ## ------------------------------------------------------------------------
-#' Caculate the count number of features
+#' Calculate the count number of features
 #' 
 #' Calculate the features counts based on the frequency of multiple selectors.
 #' 
 #' @param fs.ord data matrix for multiple feature order lists.
 #' @param top.k top feature number to be processed.
 #' @return a data matrix of feature counts.
+#' @examples 
+#' fs.ord <- mtExtra:::fs.ord
+#' feat_count(fs.ord, top.k = 20)
 #' @export 
 ## lwc-10-11-2021, Wed: get the count number of feature selectors in top-k
 ##  feature orders.
@@ -839,8 +842,8 @@ feat_count <- function(fs.ord, top.k = 30) {
     pivot_longer(cols = everything(), names_to = "variable")
 
   fs_top <- fs_top %>%
-    pivot_wider(names_from = variable, values_from = variable,
-                id_cols = value, values_fn = length, values_fill = 0) %>%
+    pivot_wider(names_from = "variable", values_from = "variable",
+                id_cols = "value", values_fn = length, values_fill = 0) %>%
     rowwise() %>%
     dplyr::mutate(count = rowSums(across(where(is.numeric)))) %>%
     ## mutate(count = sum(c_across(where(is.numeric)))) %>%
@@ -886,7 +889,7 @@ feat_count <- function(fs.ord, top.k = 30) {
 #'   facet_grid(Species ~ .)
 #' ggplot(val, aes(x = Species, y = value)) + geom_boxplot()
 #' 
-#' ## The plotting of missing value is similiar like this.
+#' ## The plotting of missing value is similar like this.
 #' @export
 ## lwc-02-06-2011: Relative standard deviation.
 ## wl-22-11-2021, Mon: 
@@ -930,7 +933,7 @@ mv_perc <- function(x) {
 #' 
 #' Create an `igraph` object
 #' 
-#' @param edge_df graph eddge matrix.
+#' @param edge_df graph edge matrix.
 #' @param node_df graph vertex matrix.
 #' @return an `igraph` object with some vertex statistics and community
 #'  detection center.
@@ -1163,7 +1166,7 @@ vertex_stats <- function(g) {
 #' @param grp a character string indicating two group information.
 #' @param len  length of random selection.
 #' @param strat a logical value indicated the sampling should be stratified.
-#' @return returns a selected index.
+#' @return  a selected index.
 #' @details multiple group is not supported at the current stage.
 #' @examples 
 #' cls <- iris[, 5, drop = TRUE]
@@ -1217,7 +1220,7 @@ samp_strat <- function(grp, len, strat = TRUE) {
 #' @param x  a character string or factor indicating class info.
 #' @param k  number of samples selected from each class.
 #' @param n  number of replicates.
-#' @return returns a selected index.
+#' @return  a selected index.
 #' @export 
 #' @examples  
 #'  cls   <- iris[, 5, drop = TRUE]

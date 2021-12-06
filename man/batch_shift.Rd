@@ -14,7 +14,7 @@ batch_shift(x, y, method = "mean")
 \item{method}{method for shifting.}
 }
 \value{
-returns a shifted data matrix.
+a shifted data matrix.
 }
 \description{
 Remove batch effect withing each block.

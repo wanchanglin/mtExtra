@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{dat_symb}
 \alias{dat_symb}
-\title{Symbilise data set}
+\title{Symbolise data set}
 \usage{
 dat_symb(x, thres)
 }
@@ -15,7 +15,7 @@ dat_symb(x, thres)
 a symbolic data set.
 }
 \description{
-Symbilise data values as (-1, 0, 1) based on a range
+Symbolise data values as (-1, 0, 1) based on a range
 }
 \details{
 \code{thres} can be estimated by \code{\link[=locfdr_filter]{locfdr_filter()}}.

@@ -17,10 +17,10 @@ cor_net(
 
 \item{use, method}{parameters of \code{cor}.}
 
-\item{thres}{correlation coeeficient threshold for network analysis. Only
-keep those with coeeficient larger than \code{thres}.}
+\item{thres}{correlation coefficient threshold for network analysis. Only
+keep those with coefficient larger than \code{thres}.}
 
-\item{fig_title}{a chracter string for gifure title.}
+\item{fig_title}{a character string for figure title.}
 }
 \value{
 a list of \code{ggplot2} plots.

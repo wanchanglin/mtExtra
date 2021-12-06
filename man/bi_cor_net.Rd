@@ -7,9 +7,9 @@
 bi_cor_net(co_mat, thres = 0.6, dn = NULL)
 }
 \arguments{
-\item{co_mat}{a correlation coffeficient matrix.}
+\item{co_mat}{a correlation coefficient matrix.}
 
-\item{thres}{correlation coeeficient threshold for network analysis.}
+\item{thres}{correlation coefficient threshold for network analysis.}
 
 \item{dn}{a character string for correlation name.}
 }

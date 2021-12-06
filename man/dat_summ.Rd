@@ -14,7 +14,7 @@ dat_summ(x, method = mean, ...)
 \item{...}{further parameters for \code{method}.}
 }
 \value{
-retuns a summarised table.
+a summarised table.
 }
 \description{
 Summarise a data matrix. This is a wrapper function for any summary

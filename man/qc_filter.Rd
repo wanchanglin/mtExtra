@@ -38,7 +38,7 @@ MS/NMR data filtering based on RSD of "qc" data
 }
 \details{
 This filter process takes two steps. First, the missing values
-filterting is performed on either "qc" or "sample". Then RSD-based
+filtering is performed on either "qc" or "sample". Then RSD-based
 filtering is applied to "qc" data.
 }
 \seealso{

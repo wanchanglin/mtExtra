@@ -25,7 +25,7 @@ gg_heat_dend(
 
 \item{col.dend}{plot column dendrogram ot not.}
 
-\item{row.dend.right}{a ligical value to indivate the position of row
+\item{row.dend.right}{a logical value to indicate the position of row
 dendrogram.}
 
 \item{colors}{a vector of colours for heatmap.}
@@ -34,7 +34,7 @@ dendrogram.}
 
 \item{x.rot}{plot rotate degree.}
 
-\item{legend.title}{lengend title.}
+\item{legend.title}{legend title.}
 
 \item{dist.method}{distance method.}
 
@@ -43,10 +43,10 @@ dendrogram.}
 \item{dend.line.size}{dendrogram line size.}
 }
 \value{
-retuns an object of class \code{ggplot2}.
+an object of class \code{ggplot2}.
 }
 \description{
-Plot heatmap of a data matrix using \code{ggplot2}. This funcion is modofied
+Plot heatmap of a data matrix using \code{ggplot2}. This function is modified
 from https://bit.ly/2UUnY2L.
 }
 \examples{

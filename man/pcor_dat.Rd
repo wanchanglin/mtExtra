@@ -7,12 +7,12 @@
 pcor_dat(x, y, method = c("pearson", "kendall", "spearman"))
 }
 \arguments{
-\item{x, y}{two data matrix for correlation anlysys.}
+\item{x, y}{two data matrix for correlation analyses.}
 
 \item{method}{correlation method.}
 }
 \value{
-returns a correlation matrix.
+a correlation matrix.
 }
 \description{
 Perform partial correlation analysis of two data matrix

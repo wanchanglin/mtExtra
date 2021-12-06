@@ -16,7 +16,7 @@ samp_sub(x, k, n = 10)
 \item{n}{number of replicates.}
 }
 \value{
-returns a selected index.
+a selected index.
 }
 \description{
 Select random samples from each group

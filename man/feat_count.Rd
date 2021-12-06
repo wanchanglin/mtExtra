@@ -2,7 +2,7 @@
 % Please edit documentation in R/mt_extra.R
 \name{feat_count}
 \alias{feat_count}
-\title{Caculate the count number of features}
+\title{Calculate the count number of features}
 \usage{
 feat_count(fs.ord, top.k = 30)
 }
@@ -16,4 +16,8 @@ a data matrix of feature counts.
 }
 \description{
 Calculate the features counts based on the frequency of multiple selectors.
+}
+\examples{
+fs.ord <- mtExtra:::fs.ord
+feat_count(fs.ord, top.k = 20)
 }
