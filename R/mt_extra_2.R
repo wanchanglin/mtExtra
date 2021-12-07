@@ -111,6 +111,8 @@ df_na_idx <- function(df, vars) {
 #' @export 
 ## wll-26-01-2016: 'rbind' matrix or data frame with the same dimension
 ## from a list.
+## Note: compare with 'save.tab' in package 'mt': `save.tab' do no require
+##  the same dimension but 'rbind_df' does.
 rbind_df <- function(list) {
   ## convert to data frame
   list <- lapply(list, mat2df)
@@ -481,6 +483,9 @@ plot_ggdendro <- function(hcdata,
 #' @param ord a subset of selected feature orders
 #' @export 
 ## lwc-03-03-2010: Update data set by a subset of features or variables.
+## lwc-10-08-2010: Fix a bug
+## lwc-17-01-2011: Only consider dat.all corresponding to feature order
+##   provided by ord
 upd_data <- function(dat.all, ord) {
   dn <- names(ord)
 

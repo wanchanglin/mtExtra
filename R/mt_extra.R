@@ -1178,6 +1178,7 @@ vertex_stats <- function(g) {
 #' cls[ind]
 #' @export 
 ## lwc-05-10-2010: randomly sample with stratification.
+## wl-07-12-2021, Tue: Previous name is 'sample.ind'
 samp_strat <- function(grp, len, strat = TRUE) {
   ## to-do: should check the validity of arguments.
   grp <- droplevels(factor(grp))
