@@ -19,3 +19,23 @@ a list of \code{ggplot2} plots.
 \description{
 Perform bipartite/two-mode correlation network analysis.
 }
+\examples{
+data <- mtExtra:::data
+meta <- mtExtra:::meta
+
+\dontrun{
+## process meta
+library(mt)
+meta <- mv_filter(meta, thres = 0.3)$dat
+meta <- mv.fill(meta, method = "mean") 
+meta <- preproc(meta, method = "auto")
+}
+
+co <- cor(meta, data, use = "pairwise.complete.obs")
+heat_dend(co)
+
+res <- bi_cor_net(co, thres = 0.2)
+names(res)
+res$net1
+res$dend2
+}

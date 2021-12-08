@@ -21,5 +21,5 @@ Symbolise data values as (-1, 0, 1) based on a range
 \code{thres} can be estimated by \code{\link[=locfdr_filter]{locfdr_filter()}}.
 }
 \seealso{
-\code{\link[=locfdr_filter]{locfdr_filter()}} and \code{\link[=locfdr]{locfdr()}} for \code{z.2}.
+\code{\link[=locfdr_filter]{locfdr_filter()}} for estimating threshold and \code{\link[=locfdr]{locfdr()}} for \code{z.2}.
 }

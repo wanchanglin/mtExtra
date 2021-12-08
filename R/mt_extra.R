@@ -234,6 +234,25 @@ cor_net <- function(mat,
 #'   cluster_edge_betweenness cluster_fast_greedy degree membership V<- E<-
 #' @importFrom ggraph create_layout ggraph facet_nodes geom_node_point 
 #'   geom_edge_link geom_node_text scale_edge_color_manual geom_edge_arc
+#' @examples 
+#' data <- mtExtra:::data
+#' meta <- mtExtra:::meta
+#' 
+#' \dontrun{
+#' ## process meta
+#' library(mt)
+#' meta <- mv_filter(meta, thres = 0.3)$dat
+#' meta <- mv.fill(meta, method = "mean") 
+#' meta <- preproc(meta, method = "auto")
+#' }
+#' 
+#' co <- cor(meta, data, use = "pairwise.complete.obs")
+#' heat_dend(co)
+#' 
+#' res <- bi_cor_net(co, thres = 0.2)
+#' names(res)
+#' res$net1
+#' res$dend2
 #' @export 
 ## wl-07-05-2021, Fri: Bipartite/two-mode correlation network
 ## wl-19-06-2021, Thu: change family font from 'Arial' to 'sans'. So no
@@ -317,6 +336,35 @@ bi_cor_net <- function(co_mat, thres = 0.6, dn = NULL) {
 #' @param method correlation method.
 #' @return  a correlation matrix.
 #' @importFrom ppcor pcor
+#' @seealso [ppcor::pcor()]
+#' @examples 
+#' library(dplyr)
+#' library(tidyr)
+#' library(purrr)
+#' 
+#' ## 'data' has been processed.
+#' data <- mtExtra:::data
+#' meta <- mtExtra:::meta
+#' 
+#' ## filtering
+#' meta <- mv_filter(meta, thres = 0.3)$dat
+#' 
+#' ## missing value filling
+#' meta <- meta %>%
+#'   mutate(across(where(is.numeric), function(x) {
+#'     m <- mean(x, na.rm = TRUE)
+#'     x[is.na(x)] <- m
+#'     x
+#'   }))
+#' 
+#' ## normalisation
+#' meta <- meta %>% 
+#'   mutate(across(where(is.numeric), ~ {
+#'     .x <- (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE)
+#'   }))
+#' 
+#' co <- pcor_dat(meta, data) 
+#' heat_dend(co)
 #' @export 
 ## wl-04-06-2021, Fri: partial correlation between two data frame
 pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
@@ -553,7 +601,7 @@ locfdr_filter <- function(x, plot = 1, thres = NULL, ...) {
 #' @return a symbolic data set.
 #' @details 
 #'   `thres` can be estimated by [locfdr_filter()]. 
-#' @seealso [locfdr_filter()] and [locfdr()] for `z.2`. 
+#' @seealso [locfdr_filter()] for estimating threshold and [locfdr()] for `z.2`. 
 #' @export 
 ## wl-10-12-2020, Thu: convert data with (-1, 0, 1) based on threshold.  
 dat_symb <- function(x, thres) {
@@ -650,6 +698,11 @@ var_filter <- function(x, method = "IQR", na.rm = FALSE, thres = 0.25) {
 #'  \item idx a logical vector of index for keeping features.
 #' }
 #' @family variable filters
+#' @seealso [mv_perc()] 
+#' @examples 
+#' meta <- mtExtra:::meta
+#' mv_perc(meta)
+#' mv_filter(meta, thres = 0.3)
 #' @export
 ## wl-14-06-2011: Filter features based on the percentage of missing values
 ## wl-17-06-2021, Thu: several version but this one is simple. Need to test
@@ -912,6 +965,11 @@ rsd <- function(x, na.rm = TRUE) {
 #'
 #' @param x an vector, matrix or data frame.
 #' @return missing value percentage.
+#' @examples 
+#' meta <- mtExtra:::meta
+#' mv_perc(meta)
+#' mv_filter(meta, thres = 0.3)
+#' @seealso [mv_filter()] 
 #' @export 
 ## wl-24-11-2021, Wed: extract from 'mv.stats' in 'mt'. 
 ##   For plot of rsd and mv using tidyverse, see 'debug_filter_1.R' in 

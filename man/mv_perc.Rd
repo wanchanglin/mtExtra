@@ -15,3 +15,11 @@ missing value percentage.
 \description{
 Calculate missing value percentage.
 }
+\examples{
+meta <- mtExtra:::meta
+mv_perc(meta)
+mv_filter(meta, thres = 0.3)
+}
+\seealso{
+\code{\link[=mv_filter]{mv_filter()}}
+}

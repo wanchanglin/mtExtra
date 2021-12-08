@@ -22,7 +22,14 @@ a list of with contents: \itemize{
 This function calculates the percentage of missing values and keeps those
 features with missing values percentage less than the designed threshold.
 }
+\examples{
+meta <- mtExtra:::meta
+mv_perc(meta)
+mv_filter(meta, thres = 0.3)
+}
 \seealso{
+\code{\link[=mv_perc]{mv_perc()}}
+
 Other variable filters: 
 \code{\link{blank_filter}()},
 \code{\link{locfdr_filter}()},

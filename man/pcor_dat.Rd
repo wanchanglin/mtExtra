@@ -17,3 +17,35 @@ a correlation matrix.
 \description{
 Perform partial correlation analysis of two data matrix
 }
+\examples{
+library(dplyr)
+library(tidyr)
+library(purrr)
+
+## 'data' has been processed.
+data <- mtExtra:::data
+meta <- mtExtra:::meta
+
+## filtering
+meta <- mv_filter(meta, thres = 0.3)$dat
+
+## missing value filling
+meta <- meta \%>\%
+  mutate(across(where(is.numeric), function(x) {
+    m <- mean(x, na.rm = TRUE)
+    x[is.na(x)] <- m
+    x
+  }))
+
+## normalisation
+meta <- meta \%>\% 
+  mutate(across(where(is.numeric), ~ {
+    .x <- (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE)
+  }))
+
+co <- pcor_dat(meta, data) 
+heat_dend(co)
+}
+\seealso{
+\code{\link[ppcor:pcor]{ppcor::pcor()}}
+}
