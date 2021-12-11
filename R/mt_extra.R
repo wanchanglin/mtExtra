@@ -9,7 +9,7 @@
 #' @param cor.method method for correlation
 #' @param adj.method p-value correction method
 #' @param ... other parameter for correlation.
-#' @return a list of with contents: \itemize{
+#' @return a list with contents: \itemize{
 #'  \item r correlation coefficient
 #'  \item p statistics matrix, in which the lower triangular is p-values 
 #'    and the upper triangular is adjusted p-values
