@@ -15,8 +15,8 @@
 #'    and the upper triangular is adjusted p-values
 #' }
 #' @details 
-#'   This file is modified from 'cor.table' of package 'picante'
-#'   and 'corr.test' of package 'psych'.
+#'   This file is modified from `cor.table` of package `picante`
+#'   and `corr.test` of package `psych`.
 #'   The original implementation is from Bill Venables, the author of R great
 #'   book MASS. For details, see
 #'   https://stat.ethz.ch/pipermail/r-help/2001-November/016201.html
@@ -69,8 +69,8 @@ cor_tab <- function(x,
 #' @param mat a data matrix
 #' @param cutoff a threshold for correlation analysis.
 #' @param use a string giving a method for computing covariances. For details, 
-#'   see `cor`.
-#' @param method method for correlation `cor`.
+#'   see [stats::cor()].
+#' @param method method for correlation [stats::cor()].
 #' @param fig_title title for plotting
 #' @param size text font size of `ggplot2`.
 #' @param rotate a logical indicating whether to rotate plot.
@@ -139,7 +139,7 @@ cor_hcl <- function(mat, cutoff = 0.75,
 #' Perform network analysis for correlation coefficient.
 #' 
 #' @param mat a data matrix for correlation analysis
-#' @param use,method parameters of `cor`.
+#' @param use,method parameters of [stats::cor()].
 #' @param thres correlation coefficient threshold for network analysis. Only 
 #'   keep those with coefficient larger than `thres`.
 #' @param fig_title a character string for figure title.
@@ -530,7 +530,7 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' dat <- read_csv("https://github.com/wanchanglin/ionflow/raw/master/extra/paper_ko.csv")
 #' dim(dat)
 #' 
-#' ## missing valuee filling with mean
+#' ## missing values filling with mean
 #' dat <- dat %>% 
 #'   mutate(across(where(is.numeric), function(x) {
 #'     m <- mean(x, na.rm = TRUE)
@@ -742,6 +742,10 @@ mv_filter <- function(x, thres = 0.3) {
 #'  \item idx a logical vector of index for keeping features.
 #' }
 #' @family variable filters
+#' @examples 
+#'  x <- matrix(rnorm(20 * 20), ncol = 20)
+#'  res <- rsd_filter(x, thres = 30)
+#'  dim(res$dat)
 #' @export 
 ## wl-06-11-2018, Tue: feature filter index based on RSD
 rsd_filter <- function(x, thres = 20) {
