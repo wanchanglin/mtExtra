@@ -198,7 +198,7 @@ dim_mat <- function(mat_list) {
 ## ------------------------------------------------------------------------
 #' Sort a data frame
 #' 
-#' sort a date fram and keep the row names.
+#' Sort a date fram and keep the row names.
 #' 
 #' @param df a data frame.
 #' @param ... further parameters to `order`.
