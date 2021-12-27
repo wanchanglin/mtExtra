@@ -21,6 +21,11 @@ a list of with contents: \itemize{
 \description{
 Filtering variable based on relative standard deviation (RSD).
 }
+\examples{
+ x <- matrix(rnorm(20 * 20), ncol = 20)
+ res <- rsd_filter(x, thres = 30)
+ dim(res$dat)
+}
 \seealso{
 Other variable filters: 
 \code{\link{blank_filter}()},

@@ -499,7 +499,7 @@ upd_data <- function(dat.all, ord) {
   data
 }
 
-##  1) str_trim
+##  1) trim_str
 ##  2) non_digit
 ##  3) non_zero
 ##  4) is_zero

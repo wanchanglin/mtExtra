@@ -15,7 +15,7 @@ cor_net(
 \arguments{
 \item{mat}{a data matrix for correlation analysis}
 
-\item{use, method}{parameters of \code{cor}.}
+\item{use, method}{parameters of \code{\link[stats:cor]{stats::cor()}}.}
 
 \item{thres}{correlation coefficient threshold for network analysis. Only
 keep those with coefficient larger than \code{thres}.}

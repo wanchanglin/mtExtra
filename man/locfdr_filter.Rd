@@ -54,7 +54,7 @@ library(readr)
 dat <- read_csv("https://github.com/wanchanglin/ionflow/raw/master/extra/paper_ko.csv")
 dim(dat)
 
-## missing valuee filling with mean
+## missing values filling with mean
 dat <- dat \%>\% 
   mutate(across(where(is.numeric), function(x) {
     m <- mean(x, na.rm = TRUE)

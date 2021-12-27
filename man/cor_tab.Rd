@@ -21,7 +21,7 @@ cor_tab(
 \item{...}{other parameter for correlation.}
 }
 \value{
-a list of with contents: \itemize{
+a list with contents: \itemize{
 \item r correlation coefficient
 \item p statistics matrix, in which the lower triangular is p-values
 and the upper triangular is adjusted p-values
@@ -31,8 +31,8 @@ and the upper triangular is adjusted p-values
 Calculate correlation coefficient and p-values.
 }
 \details{
-This file is modified from 'cor.table' of package 'picante'
-and 'corr.test' of package 'psych'.
+This file is modified from \code{cor.table} of package \code{picante}
+and \code{corr.test} of package \code{psych}.
 The original implementation is from Bill Venables, the author of R great
 book MASS. For details, see
 https://stat.ethz.ch/pipermail/r-help/2001-November/016201.html

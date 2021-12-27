@@ -20,9 +20,9 @@ cor_hcl(
 \item{cutoff}{a threshold for correlation analysis.}
 
 \item{use}{a string giving a method for computing covariances. For details,
-see \code{cor}.}
+see \code{\link[stats:cor]{stats::cor()}}.}
 
-\item{method}{method for correlation \code{cor}.}
+\item{method}{method for correlation \code{\link[stats:cor]{stats::cor()}}.}
 
 \item{fig_title}{title for plotting}
 
