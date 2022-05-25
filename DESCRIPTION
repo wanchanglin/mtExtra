@@ -12,7 +12,7 @@ URL: https://github.com/wanchanglin/mtExtra
 BugReports: https://github.com/wanchanglin/mtExtra/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 LazyLoad: yes
 LazyData: yes
 ZipData: No

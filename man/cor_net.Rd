@@ -31,5 +31,10 @@ Perform network analysis for correlation coefficient.
 \examples{
 res <- cor_net(mtcars)
 names(res)
-res
+res$p1    # or res$p2, res$p3, res$p4
+\dontrun{
+## see https://ggplot2-book.org/arranging-plots.html
+library(patchwork)
+res$p1 + res$p2 +res$p3 +res$p4
+}
 }

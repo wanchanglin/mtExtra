@@ -152,7 +152,12 @@ cor_hcl <- function(mat, cutoff = 0.75,
 #' @examples 
 #' res <- cor_net(mtcars)
 #' names(res)
-#' res
+#' res$p1    # or res$p2, res$p3, res$p4
+#' \dontrun{
+#' ## see https://ggplot2-book.org/arranging-plots.html
+#' library(patchwork)
+#' res$p1 + res$p2 + res$p3 + res$p4 
+#' }
 #' @export  
 ## wl-07-10-2021, Thu: Correlation network analysis
 ## wl-08-10-2021, Fri: Call function 'net_graph'
