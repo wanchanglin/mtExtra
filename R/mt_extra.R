@@ -496,7 +496,7 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' Filter data based on local false discovery rate. This function uses `z.2`
 #' of `locfdr`.
 #' 
-#' @param x a data metrix
+#' @param x a data matrix
 #' @param plot an integer for plotting. 0 gives no plots. 1 gives single 
 #'   plot showing the histogram of zz and fitted densities f and p0*f0.
 #' @param thres a user defined threshold for filtering. The default is NULL, 
@@ -918,7 +918,7 @@ feat_count <- function(fs.ord, top.k = 30) {
 ## ------------------------------------------------------------------------
 #' Relative standard deviation
 #'
-#' Caculate Relative Standard Deviation(RSD). RSD is also known as the 
+#' Calculate Relative Standard Deviation(RSD). RSD is also known as the 
 #' coefficient of variation (CV)
 #'
 #' @param x an vector, matrix or data frame.

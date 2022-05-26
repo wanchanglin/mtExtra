@@ -198,7 +198,7 @@ dim_mat <- function(mat_list) {
 ## ------------------------------------------------------------------------
 #' Sort a data frame
 #' 
-#' Sort a date fram and keep the row names.
+#' Sort a date frame and keep the row names.
 #' 
 #' @param df a data frame.
 #' @param ... further parameters to `order`.
@@ -373,7 +373,7 @@ dendro_data_k <- function(hc, k) {
 #' 
 #' Plot `ggdendro` with clusters.
 #' 
-#' @param hcdata a data mstrix return from `dendro_data_k`.
+#' @param hcdata a data matrix return from `dendro_data_k`.
 #' @param direction where to plot dendrogram.
 #' @param fan the orientation.
 #' @param branch.size,label.size,nudge.lable,expand.y a set of parameters to 

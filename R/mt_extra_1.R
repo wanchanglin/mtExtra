@@ -201,7 +201,7 @@ NULL
 #' @rdname trans 
 #' @order 1
 ## wll-29-07-2015: Transform a data matrix
-## Note: The programming structure is from ststs's 'sd' function.
+## Note: The programming structure is from stats's 'sd' function.
 dat_trans <- function(x, method = "auto", na.rm = TRUE, add = 1) {
   if (is.matrix(x)) {
     res <- apply(x, 2, vec_trans, method = method, na.rm = na.rm, add = add)
@@ -590,7 +590,7 @@ gg_heat_dend <- function(mat,
 #' @param col colours for heatmap.
 #' @param cex font size.
 #' @param xlab,ylab,main character strings for `xlab`, `ylab` and figure title.
-#' @param ... further parameters for `latticw`.
+#' @param ... further parameters for `lattice`.
 #' @return an object of class `lattice`.
 #' @importFrom lattice levelplot panel.fill panel.levelplot
 #' @importFrom latticeExtra dendrogramGrob
