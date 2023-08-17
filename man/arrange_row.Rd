@@ -15,7 +15,7 @@ arrange_row(df, ...)
 a sorted data frame.
 }
 \description{
-Sort a date fram and keep the row names.
+Sort a date frame and keep the row names.
 }
 \details{
 This function is modified from \code{arrange} of R package \code{plyr}.

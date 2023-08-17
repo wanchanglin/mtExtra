@@ -26,7 +26,7 @@ heat_dend(
 
 \item{xlab, ylab, main}{character strings for \code{xlab}, \code{ylab} and figure title.}
 
-\item{...}{further parameters for \code{latticw}.}
+\item{...}{further parameters for \code{lattice}.}
 }
 \value{
 an object of class \code{lattice}.

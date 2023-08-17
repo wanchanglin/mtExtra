@@ -7,7 +7,7 @@
 locfdr_filter(x, plot = 1, thres = NULL, ...)
 }
 \arguments{
-\item{x}{a data metrix}
+\item{x}{a data matrix}
 
 \item{plot}{an integer for plotting. 0 gives no plots. 1 gives single
 plot showing the histogram of zz and fitted densities f and p0*f0.}

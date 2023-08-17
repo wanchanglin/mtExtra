@@ -525,6 +525,7 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' @seealso [locfdr()] 
 #' @family variable filters
 #' @importFrom locfdr locfdr
+#' @importFrom readr read_csv
 #' @examples 
 #' library(dplyr)
 #' library(tidyr)
@@ -862,7 +863,7 @@ outl_det_m <- function(x, method = "mcd", conf.level = 0.95) {
 #' Remove batch effect withing each block.
 #' 
 #' @param x a data matrix.
-#' @param y  a categorical data for batch/block information.
+#' @param y a categorical data for batch/block information.
 #' @param method method for shifting.
 #' @return  a shifted data matrix.
 #' @references 
@@ -879,6 +880,54 @@ batch_shift <- function(x, y, method = "mean") {
   x <- x - g.mean
 
   return(x)
+}
+
+## ------------------------------------------------------------------------
+#' Quality control–based robust LOESS signal correction (QC-RLSC)
+#'
+#' Signal correction based on quality control.
+#'
+#' @param x a data matrix.
+#' @param y a categorical data for batch/block information.
+#' @param ... other parameter for 'loess' such as 'span' (the parameter
+#' which controls the degree of smoothing. Default: 0.75) and
+#' 'degree' (the degree of the polynomials to be used. Default: 2).
+#' @return  a corrected data matrix.
+#' @importFrom stringr str_which regex 
+#' @importFrom stats loess predict approx
+#' @references 
+#'  Warwick B Dunn, et.al, Procedures for large-scale metabolic profiling of
+#'  serum and plasma using gas chromatography and liquid chromatography
+#'  coupled to mass spectrometry, Nature Protocols, 6:1060–1083 (2011)
+#' @export 
+## wl-14-08-2023, Mon: QC-RLSC 
+## Note than the variables are divided by predicted values using qc-based
+## 'loess'. Do not use any block/batch information. 
+qc_rlsc <- function(x, y, ...) {
+
+  ## order for QCs
+  ind <- str_which(y, regex("qc", ignore_case = TRUE))
+  if (length(ind) == 0) stop("No QC samples")
+
+  ## order for interpolation (all samples and QCs)
+  ord <- 1:length(y)
+
+  ## number of variables
+  nc <- ncol(x)
+
+  res <- x
+  for (i in 1:nc) { #' i = 3
+    ## apply loess to QCs
+    loe <- loess(x[ind, i, drop = TRUE] ~ ind, ...)
+    ## yf <- predict(loe, ind)     # only predict qc
+    if (F) {                       # predict all (sample and qc)
+      yf <- predict(loe, ord)
+    } else {                       # approximate all the samples
+      yf <- approx(x = ind, y = loe$fitted, xout = ord)$y
+    }
+    res[, i] <- x[, i, drop = TRUE] / yf
+  }
+  return(res)
 }
 
 ## ------------------------------------------------------------------------
@@ -1337,11 +1386,12 @@ samp_sub <- function(x, k, n = 10) {
 ## 14) outl_det_u
 ## 15) outl_det_m
 ## 16) batch_shift
-## 17) feat_count
-## 18) rsd
-## 19) mv_perc
-## 20) net_graph
-## 21) graph_stats
-## 22) vertex_stats
-## 23) samp_strat
-## 24) samp_sub
+## 17) qc_rlsc
+## 18) feat_count
+## 19) rsd
+## 20) mv_perc
+## 21) net_graph
+## 22) graph_stats
+## 23) vertex_stats
+## 24) samp_strat
+## 25) samp_sub

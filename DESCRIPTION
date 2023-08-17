@@ -1,8 +1,8 @@
 Package: mtExtra
-Date: 2021-11-14
+Date: 2023-08-17
 Type: Package
 Title: More functions for metabolomics data analysis
-Version: 0.1.1
+Version: 0.1.2
 Author: Wanchang Lin
 Maintainer: Wanchang Lin <wanchanglin@hotmail.com>
 Description: Further functions for metabolomics data analysis.
@@ -12,10 +12,10 @@ URL: https://github.com/wanchanglin/mtExtra
 BugReports: https://github.com/wanchanglin/mtExtra/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.3
 LazyLoad: yes
 LazyData: yes
 ZipData: No
 Imports: rlang, reshape2, plyr, ggplot2, dplyr, tidyr, purrr, tibble, readr, 
-  magrittr, cowplot, ggdendro, ggraph, igraph, MASS, lattice,
+  magrittr, stringr, cowplot, ggdendro, ggraph, igraph, MASS, lattice,
   latticeExtra, ellipse, ppcor, locfdr

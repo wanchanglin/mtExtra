@@ -1,4 +1,8 @@
 
+# mtExtra 0.1.2: (17-08-2023, Thu)
+
+- Add `qc_rlsc`
+
 # mtExtra 0.1.1: (05-12-2021, Sun)
 
 - Use `sysdata.rda` for example data

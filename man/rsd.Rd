@@ -16,7 +16,7 @@ before the computation proceeds.}
 RSD value multiplied by 100.
 }
 \description{
-Caculate Relative Standard Deviation(RSD). RSD is also known as the
+Calculate Relative Standard Deviation(RSD). RSD is also known as the
 coefficient of variation (CV)
 }
 \details{
