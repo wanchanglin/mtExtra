@@ -45,6 +45,7 @@ not appear.
 }
 }
 \examples{
+\dontrun{
 library(dplyr)
 library(tidyr)
 library(purrr)
@@ -72,6 +73,7 @@ dat <- dat[res$idx, , drop = FALSE]
 ## symbolise data
 dat_sym <- dat \%>\% 
   mutate(across(where(is.numeric), ~ dat_symb(., thres = res$thres)))
+}
 }
 \seealso{
 \code{\link[=locfdr]{locfdr()}}

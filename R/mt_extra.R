@@ -525,8 +525,8 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' @seealso [locfdr()] 
 #' @family variable filters
 #' @importFrom locfdr locfdr
-#' @importFrom readr read_csv
 #' @examples 
+#' \dontrun{
 #' library(dplyr)
 #' library(tidyr)
 #' library(purrr)
@@ -554,11 +554,13 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
 #' ## symbolise data
 #' dat_sym <- dat %>% 
 #'   mutate(across(where(is.numeric), ~ dat_symb(., thres = res$thres)))
+#'}
 #' @export 
 ## wl-09-12-2020, Wed: Filter data based on z.2 of 'locfdr'
 ## wl-16-12-2020, Wed: add fixed threshold in case failure of 'locfdr'
 ## wl-26-11-2021, Fri: Should check potential multiple arguments for `plot`
 ##  and `nulltype`.
+## wl-21-08-2023, Mon: use 'dontrun' in examples
 locfdr_filter <- function(x, plot = 1, thres = NULL, ...) {
   if (!is.null(thres)) {
     if (length(thres) == 1 && thres <= 0) {
@@ -893,7 +895,6 @@ batch_shift <- function(x, y, method = "mean") {
 #' which controls the degree of smoothing. Default: 0.75) and
 #' 'degree' (the degree of the polynomials to be used. Default: 2).
 #' @return  a corrected data matrix.
-#' @importFrom stringr str_which regex 
 #' @importFrom stats loess predict approx
 #' @references 
 #'  Warwick B Dunn, et.al, Procedures for large-scale metabolic profiling of
@@ -903,10 +904,11 @@ batch_shift <- function(x, y, method = "mean") {
 ## wl-14-08-2023, Mon: QC-RLSC 
 ## Note than the variables are divided by predicted values using qc-based
 ## 'loess'. Do not use any block/batch information. 
+## wl-21-08-2023, Mon: use 'grep'
 qc_rlsc <- function(x, y, ...) {
 
   ## order for QCs
-  ind <- str_which(y, regex("qc", ignore_case = TRUE))
+  ind <- grep("qc", y, ignore.case =  TRUE, perl = TRUE)
   if (length(ind) == 0) stop("No QC samples")
 
   ## order for interpolation (all samples and QCs)
