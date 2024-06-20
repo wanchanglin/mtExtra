@@ -417,21 +417,25 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #' @export 
 ## wl-06-11-2018, Tue: Feature filtering based on QC's RSD
 ## wl-14-11-2018, Wed: add flag to missing value filtering
+## wl-20-06-2024, Thu: use grep
 qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
                       f_mv_qc_sam = FALSE, thres_mv = 0.30) {
   ## 1) filtering based on missing values: sample or qc.
   if (f_mv) {
     if (f_mv_qc_sam) {
-      tmp <- y %in% "qc" 
+      #' tmp <- y %in% "qc" 
+      tmp <- grep("qc", y, ignore.case =  TRUE, perl = TRUE)
     } else {
-      tmp <- y %in% "sample" 
+      #' tmp <- y %in% "sample" 
+      tmp <- grep("sample", y, ignore.case =  TRUE, perl = TRUE)
     }
     idx <- mv_filter(x[tmp, , drop = FALSE], thres = thres_mv)$idx
     x <- x[, idx, drop = FALSE]
   }
 
   ## 2) filtering based rsd of "qc"
-  tmp <- y %in% "qc" 
+  #' tmp <- y %in% "qc" 
+  tmp <- grep("qc", y, ignore.case =  TRUE, perl = TRUE)
   idx <- rsd_filter(x[tmp, , drop = FALSE], thres = thres_rsd)$idx
   x <- x[, idx, drop = FALSE]
 
@@ -458,11 +462,14 @@ qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
 #' @export 
 ## wl-06-11-2018, Tue: Feature filtering based on blank
 ## wl-14-11-2018, Wed: change order of missing value filtering
+## wl-20-06-2024, Thu: use grep
 blank_filter <- function(x, y, method = c("mean", "median", "max"),
                          factor = 1, f_mv = TRUE, thres_mv = 0.30) {
   method <- match.arg(method)
-  idx_sample <- y %in% "sample" 
-  idx_blank  <- y %in% "blank"
+  #' idx_sample <- y %in% "sample" 
+  #' idx_blank  <- y %in% "blank"
+  idx_sample <- grep("sample", y, ignore.case =  TRUE, perl = TRUE)
+  idx_blank <- grep("blank", y, ignore.case =  TRUE, perl = TRUE)
 
   ## 1) filtering based on missing values of "sample".
   if (f_mv) {
