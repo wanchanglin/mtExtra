@@ -409,12 +409,15 @@ pcor_dat <- function(x, y, method = c("pearson", "kendall", "spearman")) {
 #'  on "qc" or "sample". TRUE is for "qc".
 #' @param thres_mv threshold of missing values. Features less than this
 #'  threshold will be kept.
-#' @return a filtered data.
+#' @return a list of with contents: \itemize{
+#'  \item dat the filtered data matrix
+#'  \item idx a logical vector of index for keeping features.
+#' }
 #' @details This filter process takes two steps. First, the missing values 
 #'  filtering is performed on either "qc" or "sample". Then RSD-based 
 #'  filtering is applied to "qc" data.
 #' @family variable filters
-#' @export 
+#' @export
 ## wl-06-11-2018, Tue: Feature filtering based on QC's RSD
 ## wl-14-11-2018, Wed: add flag to missing value filtering
 ## wl-20-06-2024, Thu: use grep
@@ -423,10 +426,9 @@ qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
   ## 1) filtering based on missing values: sample or qc.
   if (f_mv) {
     if (f_mv_qc_sam) {
-      #' tmp <- y %in% "qc" 
+      ## tmp <- y %in% "qc" 
       tmp <- grep("qc", y, ignore.case =  TRUE, perl = TRUE)
     } else {
-      #' tmp <- y %in% "sample" 
       tmp <- grep("sample", y, ignore.case =  TRUE, perl = TRUE)
     }
     idx <- mv_filter(x[tmp, , drop = FALSE], thres = thres_mv)$idx
@@ -434,12 +436,11 @@ qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
   }
 
   ## 2) filtering based rsd of "qc"
-  #' tmp <- y %in% "qc" 
   tmp <- grep("qc", y, ignore.case =  TRUE, perl = TRUE)
   idx <- rsd_filter(x[tmp, , drop = FALSE], thres = thres_rsd)$idx
   x <- x[, idx, drop = FALSE]
 
-  return(x)
+  return(list(dat = x, idx = idx))
 }
 
 ## ----------------------------------------------------------------------- 
@@ -455,7 +456,10 @@ qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
 #'   "sample" data.
 #' @param thres_mv threshold of missing values on QC. Features less than this
 #'    threshold will be kept.
-#' @return  a filtered data. 
+#' @return a list of with contents: \itemize{
+#'  \item dat the filtered data matrix
+#'  \item idx a logical vector of index for keeping features.
+#' }
 #' @details This function provides an option to perform missing value filtering
 #'   on "sample" data. 
 #' @family variable filters
@@ -466,8 +470,8 @@ qc_filter <- function(x, y, thres_rsd = 20, f_mv = TRUE,
 blank_filter <- function(x, y, method = c("mean", "median", "max"),
                          factor = 1, f_mv = TRUE, thres_mv = 0.30) {
   method <- match.arg(method)
-  #' idx_sample <- y %in% "sample" 
-  #' idx_blank  <- y %in% "blank"
+  ## idx_sample <- y %in% "sample" 
+  ## idx_blank  <- y %in% "blank"
   idx_sample <- grep("sample", y, ignore.case =  TRUE, perl = TRUE)
   idx_blank <- grep("blank", y, ignore.case =  TRUE, perl = TRUE)
 
@@ -494,7 +498,7 @@ blank_filter <- function(x, y, method = c("mean", "median", "max"),
   ## update data set
   x <- x[, idx, drop = FALSE]
 
-  return(x)
+  return(list(dat = x, idx = idx))
 }
 
 ## ------------------------------------------------------------------------
@@ -719,7 +723,7 @@ var_filter <- function(x, method = "IQR", na.rm = FALSE, thres = 0.25) {
 #' mv_perc(meta)
 #' mv_filter(meta, thres = 0.3)
 #' @export
-## wl-14-06-2011: Filter features based on the percentage of missing values
+## wl-14-06-2011, Tue: Filter features based on the percentage of MVs
 ## wl-17-06-2021, Thu: several version but this one is simple. Need to test
 ## wl-06-11-2018, Tue: feature filter index based on missing values
 mv_filter <- function(x, thres = 0.3) {
@@ -880,13 +884,22 @@ outl_det_m <- function(x, method = "mcd", conf.level = 0.95) {
 #'   Approach for LC-MS Metabolic Profiling of Mercapturic Acids in Human
 #'   Urine Anal. Chem., 2007, 79 (7), pp 2918-2926, DOI: 10.1021/ac062153w
 #' @export 
-## lwc-07-07-2011: batch shifting: remove mean within each batch/block
+## wl-07-07-2011, Thu: Batch shifting: remove mean within each batch/block
+## wl-03-07-2024, Wed: Minor changes
+##  - Very sensitive with missing values.
+##  - Shift to overall average
 batch_shift <- function(x, y, method = "mean") {
   x <- as.data.frame(x)
 
   g.mean <- sapply(x, function(x) tapply(x, y, method, na.rm = T))
   g.mean <- sapply(1:ncol(x), function(i) g.mean[, i][y])
   x <- x - g.mean
+
+  ## overall average
+  if (T) {
+    o.mean <- sapply(x, method, na.rm = T)
+    x <- x + o.mean
+  }
 
   return(x)
 }
@@ -1011,8 +1024,8 @@ feat_count <- function(fs.ord, top.k = 30) {
 #' 
 #' ## The plotting of missing value is similar like this.
 #' @export
-## lwc-02-06-2011: Relative standard deviation.
-## wl-22-11-2021, Mon: 
+## wl-02-06-2011, Thu: Relative standard deviation.
+## wl-22-11-2021, Mon: Review 
 rsd <- function(x, na.rm = TRUE) {
   if (is.matrix(x)) {
     apply(x, 2, rsd, na.rm = na.rm)
@@ -1021,7 +1034,8 @@ rsd <- function(x, na.rm = TRUE) {
   } else if (is.data.frame(x)) {
     sapply(x, rsd, na.rm = na.rm)
   } else {
-    100 * sd(as.vector(x), na.rm = na.rm) / mean(as.vector(x), na.rm = na.rm)
+    100 * sd(as.vector(x), na.rm = na.rm) / mean(as.vector(x),
+                                                 na.rm = na.rm)
   }
 }
 
@@ -1049,7 +1063,8 @@ mv_perc <- function(x) {
   } else if (is.data.frame(x)) {
     sapply(x, mv_perc)
   } else {
-    round(sum(is.na(as.vector(x)) | is.nan(as.vector(x))) / length(as.vector(x)), digits = 3)
+    round(sum(is.na(as.vector(x)) | is.nan(as.vector(x))) / 
+          length(as.vector(x)), digits = 3)
   }
 }
 

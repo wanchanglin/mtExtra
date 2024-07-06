@@ -29,7 +29,10 @@ blank_filter(
 threshold will be kept.}
 }
 \value{
-a filtered data.
+a list of with contents: \itemize{
+\item dat the filtered data matrix
+\item idx a logical vector of index for keeping features.
+}
 }
 \description{
 MS/NMR data filtering based on "blank" data

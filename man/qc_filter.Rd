@@ -31,7 +31,10 @@ on "qc" or "sample". TRUE is for "qc".}
 threshold will be kept.}
 }
 \value{
-a filtered data.
+a list of with contents: \itemize{
+\item dat the filtered data matrix
+\item idx a logical vector of index for keeping features.
+}
 }
 \description{
 MS/NMR data filtering based on RSD of "qc" data
