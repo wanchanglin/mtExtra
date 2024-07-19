@@ -785,6 +785,49 @@ rsd_filter <- function(x, thres = 20) {
 
 ## ------------------------------------------------------------------------
 #' Univariate outlier detection
+#'
+#' Perform outlier detection using univariate method.
+#'
+#' @param x a numeric vector.
+#' @param method method for univariate outlier detection. Only `percentile`
+#'   and `median` are supported.
+#' @return  a logical vector.
+#' @references
+#'   Wilcox R R, Fundamentals of Modern Statistical Methods: Substantially
+#'   Improving Power and Accuracy, Springer 2010 (2nd edition), pages 31-35.
+#' @details
+#'  - `median`: the absolute difference between the observation and the sample
+#'    median is larger than 2 times of the Median Absolute Deviation divided
+#'    by 0.6745.
+#'  - `percentile`: either smaller than the 1st quartile minus 1.5 times of
+#'    IQR, or larger than the 3rd quartile plus 1.5 times of IQR.
+#' @family  outlier detectors
+#' @examples
+#' x <- c(2, 3, 4, 5, 6, 7, NA, 9, 50, 50)
+#' outl_det_u(x, "percentile")
+#' @export
+## wl-19-09-2020, Sat: Univariate outlier detection.
+##   Modified from R package GmAMisc.
+## wl-17-07-2024, Wed: add 'na.rm' for missing values
+outl_det_u <- function(x, method = c("percentile", "median")) {
+  method <- match.arg(method)
+  if (method == "median") {
+    med <- median(x, na.rm = TRUE)
+    mad <- median(abs(med - x), na.rm = TRUE)
+    outlier <- abs(x - med) > 2 * (mad / 0.6745)
+  }
+  if (method == "percentile") {
+    q1 <- quantile(x, 0.25, na.rm = TRUE)
+    q3 <- quantile(x, 0.75, na.rm = TRUE)
+    iqr <- q3 - q1
+    outlier <- x < q1 - 1.5 * iqr | x > q3 + 1.5 * iqr
+  }
+  outlier[is.na(outlier)] <- FALSE
+  return(outlier)
+}
+
+## ------------------------------------------------------------------------
+#' Univariate outlier detection
 #' 
 #' Perform outlier detection using univariate method.
 #' 
@@ -804,13 +847,16 @@ rsd_filter <- function(x, thres = 20) {
 #'  - `boxplot`: either smaller than the 1st quartile minus 1.5 times of IQR, 
 #'     or larger than the 3rd quartile plus 1.5 times of IQR.
 #' @family  outlier detectors
+#' @noRd
+#' @keywords internal
 #' @examples 
 #' x <- c(2, 3, 4, 5, 6, 7, 8, 9, 50, 50)
 #' outl_det_u(x, "boxplot")
-#' @export 
 ## wl-19-09-2020, Sat: Univariate outlier detection.
 ##   Modified from R package GmAMisc.
-outl_det_u <- function(x, method = c("boxplot", "median", "mean")) {
+## wl-19-07-2024, Fri: method 'mean' is only for data without missing
+##   values. So keep it as 'internal' without '@export'
+outl_det_u_1 <- function(x, method = c("boxplot", "median", "mean")) {
   method <- match.arg(method)
   if (method == "mean") {
     outlier <- abs(x - mean(x)) > 2 * sd(x)
@@ -872,84 +918,40 @@ outl_det_m <- function(x, method = "mcd", conf.level = 0.95) {
 
 ## ------------------------------------------------------------------------
 #' Batch shifting
-#' 
+#'
 #' Remove batch effect withing each block.
-#' 
+#'
 #' @param x a data matrix.
 #' @param y a categorical data for batch/block information.
 #' @param method method for shifting.
+#' @param overall_average a logical value to indicate whether or not an
+#'   overall average will be added after shifting.
 #' @return  a shifted data matrix.
-#' @references 
+#' @references
 #'   Silvia Wagner, et.al, Tools in Metabonomics: An Integrated Validation
 #'   Approach for LC-MS Metabolic Profiling of Mercapturic Acids in Human
 #'   Urine Anal. Chem., 2007, 79 (7), pp 2918-2926, DOI: 10.1021/ac062153w
-#' @export 
+#' @export
 ## wl-07-07-2011, Thu: Batch shifting: remove mean within each batch/block
 ## wl-03-07-2024, Wed: Minor changes
 ##  - Very sensitive with missing values.
 ##  - Shift to overall average
-batch_shift <- function(x, y, method = "mean") {
+## wl-18-07-2024, Thu: fix a bug
+batch_shift <- function(x, y, method = "mean", overall_average = TRUE) {
   x <- as.data.frame(x)
-
+  ## overall
+  o.mean <- sapply(x, method, na.rm = T)
+  o.mean <- matrix(o.mean, nrow=nrow(x), ncol=ncol(x), byrow=TRUE)
+  ## group
   g.mean <- sapply(x, function(x) tapply(x, y, method, na.rm = T))
   g.mean <- sapply(1:ncol(x), function(i) g.mean[, i][y])
-  x <- x - g.mean
-
   ## overall average
-  if (T) {
-    o.mean <- sapply(x, method, na.rm = T)
-    x <- x + o.mean
+  if (overall_average) {
+    x <- x - g.mean + o.mean
+  } else {
+    x <- x - g.mean
   }
-
   return(x)
-}
-
-## ------------------------------------------------------------------------
-#' Quality control–based robust LOESS signal correction (QC-RLSC)
-#'
-#' Signal correction based on quality control.
-#'
-#' @param x a data matrix.
-#' @param y a categorical data for batch/block information.
-#' @param ... other parameter for 'loess' such as 'span' (the parameter
-#' which controls the degree of smoothing. Default: 0.75) and
-#' 'degree' (the degree of the polynomials to be used. Default: 2).
-#' @return  a corrected data matrix.
-#' @importFrom stats loess predict approx
-#' @references 
-#'  Warwick B Dunn, et.al, Procedures for large-scale metabolic profiling of
-#'  serum and plasma using gas chromatography and liquid chromatography
-#'  coupled to mass spectrometry, Nature Protocols, 6:1060–1083 (2011)
-#' @export 
-## wl-14-08-2023, Mon: QC-RLSC 
-## Note than the variables are divided by predicted values using qc-based
-## 'loess'. Do not use any block/batch information. 
-## wl-21-08-2023, Mon: use 'grep'
-qc_rlsc <- function(x, y, ...) {
-
-  ## order for QCs
-  ind <- grep("qc", y, ignore.case =  TRUE, perl = TRUE)
-  if (length(ind) == 0) stop("No QC samples")
-
-  ## order for interpolation (all samples and QCs)
-  ord <- 1:length(y)
-
-  ## number of variables
-  nc <- ncol(x)
-
-  res <- x
-  for (i in 1:nc) { #' i = 3
-    ## apply loess to QCs
-    loe <- loess(x[ind, i, drop = TRUE] ~ ind, ...)
-    ## yf <- predict(loe, ind)     # only predict qc
-    if (F) {                       # predict all (sample and qc)
-      yf <- predict(loe, ord)
-    } else {                       # approximate all the samples
-      yf <- approx(x = ind, y = loe$fitted, xout = ord)$y
-    }
-    res[, i] <- x[, i, drop = TRUE] / yf
-  }
-  return(res)
 }
 
 ## ------------------------------------------------------------------------
@@ -1410,7 +1412,6 @@ samp_sub <- function(x, k, n = 10) {
 ## 14) outl_det_u
 ## 15) outl_det_m
 ## 16) batch_shift
-## 17) qc_rlsc
 ## 18) feat_count
 ## 19) rsd
 ## 20) mv_perc

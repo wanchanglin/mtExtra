@@ -87,7 +87,7 @@ df_na_idx <- function(df, vars) {
 #' Row bind of a list of matrix or data frame with the same dimension.
 #' 
 #' @param list a list of data matrix.
-#' @return  a data mstrix.
+#' @return  a data matrix.
 #' @examples  
 #' df1 <- data.frame(x = c(1, 3), y = c(2, 4))
 #' df2 <- data.frame(x = c(5, 7), y = c(6, 8))

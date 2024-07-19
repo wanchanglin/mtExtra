@@ -10,7 +10,7 @@ rbind_df(list)
 \item{list}{a list of data matrix.}
 }
 \value{
-a data mstrix.
+a data matrix.
 }
 \description{
 Row bind of a list of matrix or data frame with the same dimension.

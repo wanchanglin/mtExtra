@@ -4,7 +4,7 @@
 \alias{batch_shift}
 \title{Batch shifting}
 \usage{
-batch_shift(x, y, method = "mean")
+batch_shift(x, y, method = "mean", overall_average = TRUE)
 }
 \arguments{
 \item{x}{a data matrix.}
@@ -12,6 +12,9 @@ batch_shift(x, y, method = "mean")
 \item{y}{a categorical data for batch/block information.}
 
 \item{method}{method for shifting.}
+
+\item{overall_average}{a logical value to indicate whether or not an
+overall average will be added after shifting.}
 }
 \value{
 a shifted data matrix.
