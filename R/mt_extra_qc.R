@@ -29,6 +29,7 @@ qc_rlsc_wrap <- function(dat, cls.qc, cls.bl,
 
   ## log transformation
   if (log10) {
+    dat[dat ==0] <- NA
     dat <- log10(dat)
   }
 
