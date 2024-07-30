@@ -103,6 +103,7 @@ qc_rlsc_wrap <- function(dat, cls.qc, cls.bl,
 ## wl-02-07-2024, Tue: 'losses' fails in vector which includes only missing
 ##   values. Should filter based on each batch or lower down threshold
 ## wl-08-07-2024, Mon: call 'loess_gcv' for optimisation span
+## wl-30-07-2024, Tue: use less.control for extrapolation
 qc_rlsc <- function(x, y, method = c("subtract", "divide"), opti = TRUE,
                     ...) {
   method <- match.arg(method)
@@ -122,11 +123,12 @@ qc_rlsc <- function(x, y, method = c("subtract", "divide"), opti = TRUE,
       loe <- loess_gcv(ind, x[ind, i, drop = TRUE],
                        span.range = c(.05, .95), ...)
     } else {    # default span: 0.75
-      loe <- loess(x[ind, i, drop = TRUE] ~ ind, ...)
+      loe <- loess(x[ind, i, drop = TRUE] ~ ind,
+                   control = loess.control(surface = "direct"), ...)
     }
     if (T) {              # predict all (sample and qc)
       yf <- predict(loe, ord)
-    } else {              # approximate all the samples
+    } else {              # approximate all the samples (interpolation only)
       yf <- approx(x = ind, y = loe$fitted, xout = ord)$y
     }
   })
@@ -160,6 +162,7 @@ qc_rlsc <- function(x, y, method = c("subtract", "divide"), opti = TRUE,
 #' @keywords internal
 ## wl-08-07-2024, Mon: Optimal loess model with GCV
 ## Modified from https://bit.ly/3zBo3Qn
+## wl-30-07-2024, Tue: use less.control for extrapolation
 loess_gcv <- function(x, y, span.range = c(.05, .95), ...){
 
   ## ---------------------------------------------------------------------
@@ -191,7 +194,8 @@ loess_gcv <- function(x, y, span.range = c(.05, .95), ...){
 
   ## ---------------------------------------------------------------------
   ## default span = 0.75
-  loe <- loess(y ~ x, ...)
+  loe <- loess(y ~ x,
+               control = loess.control(surface = "direct"), ...)
 
   ## optimise model span
   opti <- bestLoess(loe, spans = span.range)
