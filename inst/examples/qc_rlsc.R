@@ -1,84 +1,215 @@
+#' ---
+#' title: "Quality control–based robust LOESS signal correction (QC-RLSC)"
+#' author: "Wanchang Lin"
+#' date: "`r Sys.Date()`"
+#' output:
+#'   BiocStyle::html_document:
+#'     toc_depth: 3
+#'     number_section: false
+#'     toc_float: false
+#'   BiocStyle::pdf_document:
+#'     keep_tex: true
+#'     toc: true
+#'     toc_depth: 3
+#'     number_section: false
+#'     citation_package: natbib
+#'     latex_engine: xelatex
+#' always_allow_html: true
+#' geometry: margin=1in
+#' fontsize: 11pt
+#' ---
+
+#' <!--
+#' # Test code for QC-RLSC
+#' > wl-15-08-2023, Tue: test code for qc_rlsc. <br/>
+#' > wl-17-08-2023, Thu: the first version. <br/>
+#' > wl-03-07-2024, Wed: more test <br/>
+#' > wl-17-07-2024, Wed: QC outlier detection <br/>
+#' > wl-18-07-2024, Thu: batch shift <br/>
+#' > wl-23-07-2024, Tue: Rscript -e 'knitr::spin("qc_rlsc_vig.R")' <br/>
+#' > wl-01-08-2024, Thu: Use this
+#' > Rscript -e "rmarkdown::render('qc_rlsc.R',BiocStyle::html_document())"
+#' -->
+
 #+ common, include=F
-## > 15-08-2023, Tue: test code for qc_rlsc. <br/>
-## > 17-08-2023, Thu: finalise. <br/>
 rm(list = ls(all = TRUE))
+options(help_type = "html")
 source("_common.R")
-
-#' # Quality control–based robust LOESS signal correction (QC-RLSC)
-#'
-
-## ---- Setting ----
-#' ## Setting
-
-#' Load R packages 
-pkgs <- c("mt", "mtExtra", "tidyverse", "readxl")
+pkgs <- c("mt", "mtExtra", "tidyverse", "readxl", "openxlsx", "tictoc")
 invisible(lapply(pkgs, library, character.only = TRUE))
 
-## ----- Read data -----
+## ---- Read data ----
 #' ## Read data
 
+#' Select file for signal correction
 PATH <- here::here("extdata", "data_qcrlsc.xlsx")
+
+#' Load into R
 xls  <- PATH %>%
-  excel_sheets() %>% 
-  set_names() %>% 
+  excel_sheets() %>%
+  set_names() %>%
   map(read_excel, path = PATH)
 
 #' Check the data
 names(xls)
 t(sapply(xls, dim))
 
+#' Get meta and data matrix
 meta <- xls$meta
-meta
 data <- xls$data %>%
   mutate_if(is.character, as.numeric)
-data
 
-#' Group information for data screening
+#' Extract group information of batch and sample types
+names(meta)
 (cls.qc <- factor(meta$type))
 (cls.bl <- factor(meta$block))
 
-## ----- Missing value filtering and filling -----
-#' ## Missing value filtering and filling
+## ---- Missing value filter and fill ----
+#' ## Missing value filter and fill
 
-#' Check percentage of missing value
+#' Let zero as NA before missing value process
+data[data == 0] <- NA
+
+#' Check missing value rates
 tail(sort(mv_perc(data)), 20)
 
-dat <- mv_filter(data, thres = 0.3)$dat %>%
-  mv.fill(method = "median", ze_ne = T) %>% as_tibble()
-dat
+#' Filter based on missing values
+filter_qc <- FALSE    # filter on qc missing values or all missing values
+thres <- 0.2           # threshold for filtering
+
+if (filter_qc) {      # filter using all missing values
+  ret <- mv_filter(data, thres = thres)
+} else {              # filter using qc missing values
+  ret <- mv_filter_qc(data, cls.qc, thres = thres)
+}
+
+#' Update data matrix and peak
+dat <- ret$dat
+
+#' Missing values filling for visualisation
+dat_fill  <- dat %>% mv.fill(method = "median", ze_ne = T) %>% as_tibble()
 
 #' Data screening before signal correction
-pcaplot(dat, cls.qc, pcs = c(2, 1), ep = 1)
-pcaplot(dat, cls.bl, pcs = c(2, 1), ep = 1)
-plot(pcalda(dat, cls.bl), dimen = c(1:2), ep = 2)
-plot(plslda(dat, cls.bl), dimen = c(1:2), ep = 2)
 
-## ----- Batch correction by QC-RLSC  -----
-#' ## Batch correction by QC-RLSC
+#' PCA plot for sample types
+pcaplot(dat_fill, cls.qc, pcs = c(2, 1), ep = 1)
 
-if (T) {
-  res <- qc_rlsc(dat, cls.qc)
-} else { # wl-16-08-2023, Wed: do signal correction inside each batch
-  res <- lapply(levels(cls.bl), function(x){
-    #' x <- levels(cls.bl)[[1]]
+#' PCA plot for batches
+pcaplot(dat_fill, cls.bl, pcs = c(2, 1), ep = 1)
+
+#' LDA plot for batches
+plot(pcalda(dat_fill, cls.bl))
+
+#' LDA plot of batches: LD1 vs LD2 (only for batch groups larger than 2)
+plot(pcalda(dat_fill, cls.bl), dimen = c(1:2), ep = 2)
+
+#' PLS plot of batches: LC1 vs LC2
+plot(plslda(dat_fill, cls.bl), dimen = c(1:2), ep = 2)
+
+## ---- Set parameters for QC-RLSC ----
+#' ## Set parameters for QC-RLSC
+
+method <- "subtract"  # two methods: "subtract", "divide"
+intra <- F            # signal correction within batch or not
+opti <- T             # optimise smooth parameter  or not
+log10 <- T            # log 10 transform data or not
+outl <- T             # outlier detect in qc samples or not
+shift <- T            # batch shift or not
+
+## ---- QC outlier detection ----
+#' ## QC outlier detection
+
+#' log transformation
+if (log10) {
+  dat[dat == 0] <- NA
+  dat <- log10(dat)
+}
+
+#' outlier detection based on QC
+if (outl) {
+  dat <- sapply(dat, function(x) { #' x <- dat[, 6, drop = T]
+    qc_ind <- grepl("qc", cls.qc, ignore.case =  TRUE, perl = TRUE)
+    ## get median of qc data
+    qc_dat <- x[qc_ind]
+    qc_median <- median(qc_dat, na.rm = TRUE)
+    ## assign other data as NA for QC outlier detection
+    tmp <- x
+    tmp[!qc_ind] <- NA
+    ## QC outlier detection
+    out_ind <- outl_det_u(tmp)
+    ## assign outlier as qc median
+    x[out_ind] <- qc_median
+    return(x)
+  }) %>% as_tibble()
+}
+dat
+
+## ---- QC-RLSC ----
+#' ## QC-RLSC
+
+#' perform qc-rlsc within each batch or not
+tic()
+if (!intra) {
+  res <- qc_rlsc(dat, cls.qc, method = method, opti = opti)
+} else { # do signal correction inside each batch
+  res <- lapply(levels(cls.bl), function(x) {
     idx <- cls.bl %in% x
-    tmp <- qc_rlsc(dat[idx,], cls.qc[idx])
+    tmp <- qc_rlsc(dat[idx,], cls.qc[idx], method = method, opti = opti)
   })
   res <- bind_rows(res)
 }
+toc()
 
-#' Data screening after singal correction
-pcaplot(res, cls.bl, pcs = c(2, 1), ep = 1)
-plot(pcalda(res, cls.bl), dimen = c(1:2), ep = 2)
-plot(plslda(res, cls.bl), dimen = c(1:2), ep = 2)
+#' Data visualisation after signal correction
+res_fill  <- res %>% mv.fill(method = "median", ze_ne = T) %>% as_tibble()
 
-## ----- OPTION: batch shift -----
-#' ## OPTION: batch shift
+#' PCA plot for sample types
+pcaplot(res_fill, cls.qc, pcs = c(2, 1), ep = 1)
 
-#' Remove batch mean
-res <- batch_shift(res, cls.bl)
+#' PCA plot for batches
+pcaplot(res_fill, cls.bl, pcs = c(2, 1), ep = 1)
 
-#' Data screening after batch shift
-pcaplot(res, cls.bl, pcs = c(2, 1), ep = 1)
-plot(pcalda(res, cls.bl), dimen = c(1:2), ep = 2)
-plot(plslda(res, cls.bl), dimen = c(1:2), ep = 2)
+#' LDA plot for batches
+plot(pcalda(res_fill, cls.bl))
+
+#' LDA plot of batches: LD1 vs LD2 (only for batch groups larger than 2)
+plot(pcalda(res_fill, cls.bl), dimen = c(1:2), ep = 2)
+
+#' PLS plot of batches: LC1 vs LC2 
+plot(plslda(res_fill, cls.bl), dimen = c(1:2), ep = 2)
+
+## ---- Batch shift ----
+#' ## Batch shift
+
+if (shift) {
+  res <- batch_shift(res, cls.bl, overall_average = T) %>% as_tibble()
+}
+
+#' Data visualisation after batch shift
+res_fill  <- res %>% mv.fill(method = "median", ze_ne = T) %>% as_tibble()
+
+#' PCA plot for sample types
+pcaplot(res_fill, cls.qc, pcs = c(2, 1), ep = 1)
+
+#' PCA plot for batches
+pcaplot(res_fill, cls.bl, pcs = c(2, 1), ep = 1)
+
+#' LDA plot for batches
+plot(pcalda(res_fill, cls.bl))
+
+#' LDA plot of batches: LD1 vs LD2 (only for batch groups larger than 2)
+plot(pcalda(res_fill, cls.bl), dimen = c(1:2), ep = 2)
+
+#' PLS plot of batches: LC1 vs LC2
+plot(plslda(res_fill, cls.bl), dimen = c(1:2), ep = 2)
+
+## ---- Save results ----
+#' ## Save results
+
+#' inverse log10 transformation
+res <- 10^res %>% as_tibble()
+
+tmp <- list(data =  res, meta = meta)
+
+## write.xlsx(tmp, file = here::here("extdata", paste0(FILE, "_res.xlsx")),
+##            asTable = F, overwrite = T, rowNames = F, colNames = T)
