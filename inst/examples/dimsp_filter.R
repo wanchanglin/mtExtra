@@ -1,42 +1,66 @@
-#+ common, include=F
-## > 23-11-2021, Tue: use mtExtra. do not split data. so no merge. <br/>
-## > 24-11-2021, Wed: test again and apply 'knitr::spin'. <br/> 
-## > 25-11-2021, Thu: Use a small data set. <br/>
-rm(list = ls(all = T))
-source("_common.R")
+#' ---
+#' title: "Metabolomics data filtering"
+#' author: "Wanchang Lin"
+#' date: "`r Sys.Date()`"
+#' output:
+#'   BiocStyle::html_document:
+#'     toc_depth: 3
+#'     number_section: false
+#'     toc_float: false
+#'   BiocStyle::pdf_document:
+#'     keep_tex: true
+#'     toc: true
+#'     toc_depth: 3
+#'     number_section: false
+#'     citation_package: natbib
+#'     latex_engine: xelatex
+#' always_allow_html: true
+#' geometry: margin=1in
+#' fontsize: 11pt
+#' ---
 
+#' <!--
 #' # Metabolomics data filtering
-#' 
- 
-## ---- Setting ----
-#' ## Setting
+#' > 23-11-2021, Tue: use mtExtra. do not split data. so no merge. <br/>
+#' > 24-11-2021, Wed: test again and apply: <br/> 
+#' >   Rscript -e 'knitr::spin("dimsp_filter.R")' <br/>
+#' > 25-11-2021, Thu: Use a small data set. <br/>
+#' > wl-01-08-2024, Thu: Use this
+#' > Rscript -e "rmarkdown::render('dimsp_filter.R', BiocStyle::html_document())"
+#' -->
 
-#' load R packages 
+#+ common, include=F
+rm(list = ls(all = TRUE))
+options(help_type = "html")
+source("_common.R")
 pkgs <- c("mt", "mtExtra", "tidyverse")
 invisible(lapply(pkgs, library, character.only = TRUE))
 
-#' parameter setting
+## ---- Parameter Setting ----
+#' ## Parameter Setting
+
+#' parameter setting: put into a list
 opt <- list(
-  #' Input
+  ## Input
   peak_file = here::here("extdata", "dims_peak.tsv"),
 
-  #' QC filtering
+  ## QC filtering
   qc = TRUE,
-  #' wl-01-04-2019, Mon: It is critical to choose rsd threshold. The
-  #' distribution of rsd could be a guardian.
+  ## wl-01-04-2019, Mon: It is critical to choose rsd threshold. The
+  ## distribution of rsd could be a guardian.
   qc_rsd_thres = 60.0,
   qc_mv_filter = TRUE,
   qc_mv_qc_sam = TRUE,
   qc_mv_thres = 0.30,
 
-  #' blank filtering
+  ## blank filtering
   bl = TRUE,
   bl_method = "mean",
   bl_factor = 1,
   bl_mv_filter = FALSE,
   bl_mv_thres = 0.30,
 
-  #' MV filtering on samples
+  ## MV filtering on samples
   mv = FALSE,
   mv_thres = 0.30
 )
@@ -115,8 +139,8 @@ ggplot(val, aes(x = grp, y = value)) + geom_boxplot() + ggtitle("MV")
 #' qc filtering
 if (opt$qc) {
   dat <- qc_filter(dat, groups, thres_rsd = opt$qc_rsd_thres,
-                    f_mv = opt$qc_mv_filter, f_mv_qc_sam = opt$qc_mv_qc_sam,
-                    thres_mv = opt$qc_mv_thres)
+                   f_mv = opt$qc_mv_filter, f_mv_qc_sam = opt$qc_mv_qc_sam,
+                   thres_mv = opt$qc_mv_thres)
 }
 dim(dat)
 
