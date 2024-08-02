@@ -1,5 +1,5 @@
 #' ---
-#' title: "Metabolomics data filtering"
+#' title: "Metabolomics dmata filtering"
 #' author: "Wanchang Lin"
 #' date: "`r Sys.Date()`"
 #' output:
@@ -83,18 +83,18 @@ groups
 #' transpose to make rows as replicates and columns as features.
 dat <- t(dat)
 colnames(dat) <- peak[, 1, drop = TRUE]
+head(dat[, 1:4])
 
 #' change zero as NA
-dat <- as_tibble(mv.zene(dat))
-dat
+dat <- dat %>% as_tibble() %>% mv.zene()
+head(dat[, 1:4])
 
 ## ---- Missing value and RSD checking ----
 #' ## Missing value and RSD checking
 
 #' combine data matrix with filtering group
-data <- as_tibble(cbind(grp = groups, dat))
-# data <- bind_cols(grp = groups, dat) 
-data
+data <- bind_cols(grp = groups, dat) 
+head(data[, 1:4])
 
 #' function to select only numeric columns for computering rsd or mv.
 df_summ <- function(dat, method = mean, ...) {
@@ -138,18 +138,22 @@ ggplot(val, aes(x = grp, y = value)) + geom_boxplot() + ggtitle("MV")
 
 #' qc filtering
 if (opt$qc) {
-  dat <- qc_filter(dat, groups, thres_rsd = opt$qc_rsd_thres,
+  res <- qc_filter(dat, groups, thres_rsd = opt$qc_rsd_thres,
                    f_mv = opt$qc_mv_filter, f_mv_qc_sam = opt$qc_mv_qc_sam,
                    thres_mv = opt$qc_mv_thres)
 }
+names(res)
+dat <- res$dat
 dim(dat)
 
 #' blank filtering
 if (opt$bl) {
-  dat <- blank_filter(dat, groups, method = opt$bl_method,
+  res <- blank_filter(dat, groups, method = opt$bl_method,
                       factor = opt$bl_factor, f_mv = opt$bl_mv_filter,
                       thres_mv = opt$bl_mv_thres)
 }
+names(res)
+dat <- res$dat
 dim(dat)
 
 #' wl-28-11-2018, Wed: MV filtering can be done in qc_filter,
@@ -170,4 +174,4 @@ if (mv) {
   dat <- dat[, idx, drop = FALSE]
 }
 dim(dat)
-dat
+dat[, 1:4]
