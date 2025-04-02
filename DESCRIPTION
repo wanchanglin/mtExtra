@@ -2,7 +2,7 @@ Package: mtExtra
 Date: 2023-08-17
 Type: Package
 Title: More functions for metabolomics data analysis
-Version: 0.1.2
+Version: 0.1.3
 Author: Wanchang Lin
 Maintainer: Wanchang Lin <wanchanglin@hotmail.com>
 Description: Further functions for metabolomics data analysis.
@@ -12,7 +12,7 @@ URL: https://github.com/wanchanglin/mtExtra
 BugReports: https://github.com/wanchanglin/mtExtra/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 LazyLoad: yes
 LazyData: yes
 ZipData: No

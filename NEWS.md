@@ -1,4 +1,8 @@
 
+# mtExtra 0.1.3: (02-04-2025, Wed)
+
+- Remove `qc_rlsc`. A new R package `qcrlscR` for this task.
+
 # mtExtra 0.1.2: (17-08-2023, Thu)
 
 - Add `qc_rlsc`
